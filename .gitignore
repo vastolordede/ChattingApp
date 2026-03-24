@@ -1,0 +1,35 @@
+# ======================
+# VSCode
+# ======================
+.vscode/
+
+# ======================
+# Flutter
+# ======================
+chattingapp_fe/build/
+chattingapp_fe/.dart_tool/
+chattingapp_fe/.idea/
+
+# Android
+chattingapp_fe/android/.gradle/
+chattingapp_fe/android/local.properties
+
+# ======================
+# Golang (BE)
+# ======================
+chattingapp_be/bin/
+chattingapp_be/build/
+chattingapp_be/tmp/
+
+# file build exe
+*.exe
+*.out
+
+# logs
+*.log
+
+# ======================
+# OS
+# ======================
+.DS_Store
+Thumbs.db
