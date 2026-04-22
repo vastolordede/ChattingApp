@@ -214,7 +214,7 @@ func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	if err := h.authService.ChangePassword(r.Context(), userID, req); err != nil {
 		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
 			Success: false,
-			Message: "đổi mật khẩu thất bại",
+			Message: "đổi mật khẩu  thất bại",
 			Error:   err.Error(),
 		})
 		return
