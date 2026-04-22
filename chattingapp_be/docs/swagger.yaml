@@ -11,6 +11,25 @@ definitions:
       user:
         $ref: '#/definitions/dto.UserResponse'
     type: object
+  dto.ChangePasswordRequest:
+    properties:
+      confirm_new_password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      new_password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      old_password:
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - confirm_new_password
+    - new_password
+    - old_password
+    type: object
   dto.ConversationDetailResponse:
     properties:
       avatar_url:
@@ -358,6 +377,15 @@ definitions:
       nickname:
         type: string
     type: object
+  dto.UpdateProfileRequest:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      full_name:
+        type: string
+    type: object
   dto.UserResponse:
     properties:
       avatar_url:
@@ -520,6 +548,38 @@ info:
   title: ChattingApp Backend API
   version: "1.0"
 paths:
+  /auth/change-password:
+    patch:
+      consumes:
+      - application/json
+      description: Yêu cầu mật khẩu cũ và nhập lại mật khẩu mới 2 lần
+      parameters:
+      - description: Thông tin đổi mật khẩu
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Đổi mật khẩu
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -593,6 +653,38 @@ paths:
       security:
       - BearerAuth: []
       summary: Lấy thông tin tài khoản hiện tại
+      tags:
+      - Auth
+  /auth/profile:
+    patch:
+      consumes:
+      - application/json
+      description: Cập nhật full_name, avatar_url, bio
+      parameters:
+      - description: Thông tin profile mới
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.UserProfileResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cập nhật profile của user hiện tại
       tags:
       - Auth
   /auth/refresh:

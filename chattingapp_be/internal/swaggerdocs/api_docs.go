@@ -359,3 +359,30 @@ func ListMessagesDoc() {}
 // @Failure 500 {object} ErrorResponse
 // @Router /devices/register [post]
 func RegisterDeviceDoc() {}
+// UpdateMyProfileDoc godoc
+// @Summary Cập nhật profile của user hiện tại
+// @Description Cập nhật full_name, avatar_url, bio
+// @Tags Auth
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.UpdateProfileRequest true "Thông tin profile mới"
+// @Success 200 {object} UserProfileResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /auth/profile [patch]
+func UpdateMyProfileDoc() {}
+
+// ChangePasswordDoc godoc
+// @Summary Đổi mật khẩu
+// @Description Yêu cầu mật khẩu cũ và nhập lại mật khẩu mới 2 lần
+// @Tags Auth
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.ChangePasswordRequest true "Thông tin đổi mật khẩu"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /auth/change-password [patch]
+func ChangePasswordDoc() {}

@@ -33,3 +33,8 @@ type AuthResponse struct {
 	TokenType    string       `json:"token_type"`
 	User         UserResponse `json:"user"`
 }
+type ChangePasswordRequest struct {
+	OldPassword        string `json:"old_password" validate:"required,min=6,max=100"`
+	NewPassword        string `json:"new_password" validate:"required,min=6,max=100"`
+	ConfirmNewPassword string `json:"confirm_new_password" validate:"required,min=6,max=100"`
+}

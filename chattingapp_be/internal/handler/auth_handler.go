@@ -154,3 +154,74 @@ func (h *AuthHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 		Data:    resp,
 	})
 }
+func (h *AuthHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	var req dto.UpdateProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	resp, err := h.authService.UpdateMyProfile(r.Context(), userID, req)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "cập nhật profile thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "cập nhật profile thành công",
+		Data:    resp,
+	})
+}
+
+func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	var req dto.ChangePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := h.authService.ChangePassword(r.Context(), userID, req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "đổi mật khẩu thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "đổi mật khẩu thành công",
+	})
+}
