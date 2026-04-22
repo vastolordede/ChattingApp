@@ -1,0 +1,1148 @@
+basePath: /
+definitions:
+  dto.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.ConversationDetailResponse:
+    properties:
+      avatar_url:
+        type: string
+      conversation_type:
+        type: string
+      created_at:
+        type: string
+      created_by_user_id:
+        type: integer
+      id:
+        type: integer
+      last_message_at:
+        type: string
+      last_message_id:
+        type: integer
+      members:
+        items:
+          $ref: '#/definitions/dto.ConversationMemberSummary'
+        type: array
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ConversationListItemResponse:
+    properties:
+      avatar_url:
+        type: string
+      conversation_type:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      last_message:
+        $ref: '#/definitions/dto.MessagePreviewResponse'
+      last_message_at:
+        type: string
+      last_message_id:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ConversationMemberSummary:
+    properties:
+      avatar_url:
+        type: string
+      full_name:
+        type: string
+      is_active:
+        type: boolean
+      joined_at:
+        type: string
+      last_read_at:
+        type: string
+      last_read_message_id:
+        type: integer
+      nickname:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  dto.CreateDirectConversationRequest:
+    properties:
+      target_user_id:
+        type: integer
+    required:
+    - target_user_id
+    type: object
+  dto.DeleteMessageRequest:
+    properties:
+      soft_delete:
+        type: boolean
+    type: object
+  dto.EditMessageRequest:
+    properties:
+      content:
+        type: string
+    required:
+    - content
+    type: object
+  dto.FriendListItemResponse:
+    properties:
+      created_at:
+        type: string
+      ended_at:
+        type: string
+      friend:
+        $ref: '#/definitions/dto.FriendUserSummary'
+      friendship_id:
+        type: integer
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.FriendUserSummary:
+    properties:
+      avatar_url:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      is_verified:
+        type: boolean
+      username:
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      app_version:
+        type: string
+      device_name:
+        type: string
+      device_type:
+        type: string
+      device_uuid:
+        type: string
+      identifier:
+        type: string
+      os_version:
+        type: string
+      password:
+        type: string
+      platform:
+        type: string
+    required:
+    - identifier
+    - password
+    type: object
+  dto.MarkConversationReadRequest:
+    properties:
+      last_read_message_id:
+        type: integer
+    required:
+    - last_read_message_id
+    type: object
+  dto.MessageAttachmentResponse:
+    properties:
+      attachment_type:
+        type: string
+      checksum:
+        type: string
+      created_at:
+        type: string
+      duration_seconds:
+        type: integer
+      encryption_key_hint:
+        type: string
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_url:
+        type: string
+      height:
+        type: integer
+      id:
+        type: integer
+      mime_type:
+        type: string
+      thumbnail_url:
+        type: string
+      width:
+        type: integer
+    type: object
+  dto.MessagePreviewResponse:
+    properties:
+      content:
+        type: string
+      id:
+        type: integer
+      is_deleted:
+        type: boolean
+      is_edited:
+        type: boolean
+      message_type:
+        type: string
+      sender_user_id:
+        type: integer
+      sent_at:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.MessageResponse:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/dto.MessageAttachmentResponse'
+        type: array
+      client_message_id:
+        type: string
+      content:
+        type: string
+      conversation_id:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      edited_at:
+        type: string
+      forwarded_from_message_id:
+        type: integer
+      id:
+        type: integer
+      is_deleted:
+        type: boolean
+      is_edited:
+        type: boolean
+      message_type:
+        type: string
+      reply_to_message_id:
+        type: integer
+      reply_to_message_preview:
+        $ref: '#/definitions/dto.MessagePreviewResponse'
+      sender:
+        $ref: '#/definitions/dto.MessageSenderInfo'
+      sender_user_id:
+        type: integer
+      sent_at:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.MessageSenderInfo:
+    properties:
+      avatar_url:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
+  dto.MuteConversationRequest:
+    properties:
+      mute_until:
+        type: string
+    type: object
+  dto.RegisterDeviceRequest:
+    properties:
+      app_version:
+        type: string
+      device_name:
+        type: string
+      device_type:
+        description: phone/tablet/desktop/web
+        type: string
+      device_uuid:
+        type: string
+      os_version:
+        type: string
+      platform:
+        description: android/ios/windows/macos/linux/web
+        type: string
+      push_token:
+        type: string
+    required:
+    - device_name
+    - device_type
+    - device_uuid
+    - platform
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      full_name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      phone_number:
+        maxLength: 20
+        minLength: 8
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    - phone_number
+    - username
+    type: object
+  dto.RespondFriendRequestRequest:
+    properties:
+      action:
+        description: accepted | rejected | cancelled
+        type: string
+    required:
+    - action
+    type: object
+  dto.SendFriendRequestRequest:
+    properties:
+      message:
+        type: string
+      receiver_user_id:
+        type: integer
+    required:
+    - receiver_user_id
+    type: object
+  dto.SendMessageRequest:
+    properties:
+      client_message_id:
+        type: string
+      content:
+        type: string
+      conversation_id:
+        type: integer
+      message_type:
+        description: text/image/video/file/audio/link/system
+        type: string
+      reply_to_message_id:
+        type: integer
+    required:
+    - conversation_id
+    - message_type
+    type: object
+  dto.UpdateConversationNicknameRequest:
+    properties:
+      nickname:
+        type: string
+    type: object
+  dto.UserResponse:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      is_verified:
+        type: boolean
+      last_seen_at:
+        type: string
+      phone_number:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  swaggerdocs.AuthResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/dto.AuthResponse'
+      message:
+        example: đăng nhập thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.ConversationDetailResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/dto.ConversationDetailResponse'
+      message:
+        example: lấy chi tiết cuộc trò chuyện thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.ConversationListData:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.ConversationListItemResponse'
+        type: array
+    type: object
+  swaggerdocs.ConversationListResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/swaggerdocs.ConversationListData'
+      message:
+        example: lấy danh sách cuộc trò chuyện thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.ErrorResponse:
+    properties:
+      error:
+        example: mô tả lỗi
+        type: string
+      message:
+        example: request thất bại
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  swaggerdocs.FriendListResponseEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.FriendListItemResponse'
+        type: array
+      message:
+        example: lấy danh sách bạn bè thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.LogoutRequestDoc:
+    properties:
+      refresh_token:
+        example: your_refresh_token_here
+        type: string
+    type: object
+  swaggerdocs.MessageListResponseEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.MessageResponse'
+        type: array
+      message:
+        example: lấy danh sách tin nhắn thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.MessageResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/dto.MessageResponse'
+      message:
+        example: gửi tin nhắn thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.PingResponse:
+    properties:
+      message:
+        example: pong
+        type: string
+    type: object
+  swaggerdocs.RefreshRequestDoc:
+    properties:
+      refresh_token:
+        example: your_refresh_token_here
+        type: string
+    type: object
+  swaggerdocs.SuccessOnlyResponse:
+    properties:
+      message:
+        example: thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.UserProfileResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/dto.UserResponse'
+      message:
+        example: lấy thông tin cá nhân thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+info:
+  contact: {}
+  description: |-
+    API tài liệu cho ChattingApp Backend.
+    Protected APIs dùng Authorization: Bearer <access_token>
+  title: ChattingApp Backend API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Đăng nhập bằng identifier và password
+      parameters:
+      - description: Thông tin đăng nhập
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.AuthResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      summary: Đăng nhập
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Thu hồi refresh token hiện tại
+      parameters:
+      - description: Refresh token cần thu hồi
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/swaggerdocs.LogoutRequestDoc'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      summary: Đăng xuất
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      description: Lấy profile của user đang đăng nhập
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.UserProfileResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy thông tin tài khoản hiện tại
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Dùng refresh token để lấy access token mới và refresh token mới
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/swaggerdocs.RefreshRequestDoc'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.AuthResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      summary: Refresh token
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Tạo tài khoản mới
+      parameters:
+      - description: Thông tin đăng ký
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swaggerdocs.AuthResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      summary: Đăng ký tài khoản
+      tags:
+      - Auth
+  /conversations:
+    get:
+      description: Có hỗ trợ phân trang với page và limit
+      parameters:
+      - default: 1
+        description: Trang hiện tại
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Số phần tử mỗi trang
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.ConversationListResponseEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách cuộc trò chuyện
+      tags:
+      - Conversations
+  /conversations/{id}:
+    get:
+      description: Lấy chi tiết conversation theo ID
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.ConversationDetailResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy chi tiết cuộc trò chuyện
+      tags:
+      - Conversations
+  /conversations/{id}/mute:
+    patch:
+      consumes:
+      - application/json
+      description: Mute conversation đến thời điểm mute_until hoặc vô thời hạn tùy
+        logic service
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Thông tin mute
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MuteConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tắt thông báo conversation
+      tags:
+      - Conversations
+  /conversations/{id}/nickname:
+    patch:
+      consumes:
+      - application/json
+      description: Cập nhật nickname của user hiện tại trong conversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nickname mới
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateConversationNicknameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cập nhật nickname trong conversation
+      tags:
+      - Conversations
+  /conversations/{id}/read:
+    patch:
+      consumes:
+      - application/json
+      description: Cập nhật last_read_message_id cho thành viên hiện tại
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dữ liệu đánh dấu đã đọc
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarkConversationReadRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Đánh dấu đã đọc conversation
+      tags:
+      - Conversations
+  /conversations/direct:
+    post:
+      consumes:
+      - application/json
+      description: Tạo cuộc trò chuyện 1-1 với user khác
+      parameters:
+      - description: Thông tin tạo direct conversation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateDirectConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swaggerdocs.ConversationDetailResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tạo direct conversation
+      tags:
+      - Conversations
+  /devices/register:
+    post:
+      consumes:
+      - application/json
+      description: Đăng ký device cho user hiện tại
+      parameters:
+      - description: Thông tin device
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterDeviceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Đăng ký hoặc cập nhật device
+      tags:
+      - Devices
+  /friends:
+    get:
+      description: Trả về danh sách bạn bè của user hiện tại
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.FriendListResponseEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách bạn bè
+      tags:
+      - Friends
+  /friends/requests:
+    post:
+      consumes:
+      - application/json
+      description: Gửi lời mời kết bạn tới user khác
+      parameters:
+      - description: Thông tin lời mời kết bạn
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendFriendRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Gửi lời mời kết bạn
+      tags:
+      - Friends
+  /friends/requests/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: accepted | rejected | cancelled
+      parameters:
+      - description: Friend Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Hành động phản hồi
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RespondFriendRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Phản hồi lời mời kết bạn
+      tags:
+      - Friends
+  /messages:
+    get:
+      description: Lấy danh sách message theo conversation_id, có hỗ trợ page và limit
+      parameters:
+      - description: Conversation ID
+        in: query
+        name: conversation_id
+        required: true
+        type: integer
+      - default: 1
+        description: Trang hiện tại
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Số phần tử mỗi trang
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.MessageListResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách tin nhắn
+      tags:
+      - Messages
+    post:
+      consumes:
+      - application/json
+      description: Gửi một tin nhắn mới vào conversation
+      parameters:
+      - description: Thông tin tin nhắn
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swaggerdocs.MessageResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Gửi tin nhắn
+      tags:
+      - Messages
+  /messages/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Xóa mềm hoặc theo logic service
+      parameters:
+      - description: Message ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tùy chọn xóa
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/dto.DeleteMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Xóa tin nhắn
+      tags:
+      - Messages
+    patch:
+      consumes:
+      - application/json
+      description: Chỉ sửa nội dung message theo ID
+      parameters:
+      - description: Message ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nội dung sửa
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.MessageResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Sửa tin nhắn
+      tags:
+      - Messages
+  /ping:
+    get:
+      description: Kiểm tra server còn hoạt động hay không
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.PingResponse'
+      summary: Ping server
+      tags:
+      - System
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: 'Nhập theo dạng: Bearer <access_token>'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

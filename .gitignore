@@ -9,21 +9,36 @@
 chattingapp_fe/build/
 chattingapp_fe/.dart_tool/
 chattingapp_fe/.idea/
+chattingapp_fe/.flutter-plugins
+chattingapp_fe/.flutter-plugins-dependencies
+chattingapp_fe/.pub/
+chattingapp_fe/coverage/
 
 # Android
 chattingapp_fe/android/.gradle/
 chattingapp_fe/android/local.properties
+chattingapp_fe/android/app/debug/
+chattingapp_fe/android/app/profile/
+chattingapp_fe/android/app/release/
+
+# iOS
+chattingapp_fe/ios/Flutter/.last_build_id
+chattingapp_fe/ios/Pods/
+chattingapp_fe/ios/.symlinks/
 
 # ======================
 # Golang (BE)
 # ======================
+chattingapp_be/.env
 chattingapp_be/bin/
 chattingapp_be/build/
 chattingapp_be/tmp/
+chattingapp_be/.cache/
 
 # file build exe
 *.exe
 *.out
+*.dll
 
 # logs
 *.log
