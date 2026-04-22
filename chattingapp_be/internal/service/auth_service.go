@@ -418,3 +418,90 @@ func nullStringPtr(v sql.NullString) *string {
 	s := v.String
 	return &s
 }
+func (s *AuthService) UpdateMyProfile(ctx context.Context, userID int64, req dto.UpdateProfileRequest) (*dto.UserResponse, error) {
+	req.FullName = strings.TrimSpace(req.FullName)
+
+	if req.FullName == "" {
+		return nil, errors.New("full_name không được để trống")
+	}
+
+	var avatarURL sql.NullString
+	if req.AvatarURL != nil {
+		v := strings.TrimSpace(*req.AvatarURL)
+		if v != "" {
+			avatarURL = sql.NullString{String: v, Valid: true}
+		}
+	}
+
+	var bio sql.NullString
+	if req.Bio != nil {
+		v := strings.TrimSpace(*req.Bio)
+		if v != "" {
+			bio = sql.NullString{String: v, Valid: true}
+		}
+	}
+
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("không tìm thấy user")
+	}
+
+	if err := s.userRepo.UpdateProfile(ctx, userID, req.FullName, avatarURL, bio); err != nil {
+		return nil, err
+	}
+
+	updatedUser, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if updatedUser == nil {
+		return nil, errors.New("không tìm thấy user sau khi cập nhật")
+	}
+
+	resp := toUserResponse(updatedUser)
+	return &resp, nil
+}
+
+func (s *AuthService) ChangePassword(ctx context.Context, userID int64, req dto.ChangePasswordRequest) error {
+	req.OldPassword = strings.TrimSpace(req.OldPassword)
+	req.NewPassword = strings.TrimSpace(req.NewPassword)
+	req.ConfirmNewPassword = strings.TrimSpace(req.ConfirmNewPassword)
+
+	if req.OldPassword == "" || req.NewPassword == "" || req.ConfirmNewPassword == "" {
+		return errors.New("thiếu thông tin đổi mật khẩu")
+	}
+
+	if req.NewPassword != req.ConfirmNewPassword {
+		return errors.New("mật khẩu mới xác nhận không khớp")
+	}
+
+	if req.OldPassword == req.NewPassword {
+		return errors.New("mật khẩu mới không được trùng mật khẩu cũ")
+	}
+
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("không tìm thấy user")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
+		return errors.New("mật khẩu cũ không đúng")
+	}
+
+	newPasswordHashBytes, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	if err := s.userRepo.UpdatePasswordHash(ctx, userID, string(newPasswordHashBytes)); err != nil {
+		return err
+	}
+
+	return nil
+}

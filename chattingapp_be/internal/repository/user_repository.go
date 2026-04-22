@@ -325,3 +325,14 @@ func (r *UserRepository) CountSearchUsers(ctx context.Context, keyword string) (
 
 	return total, nil
 }
+func (r *UserRepository) UpdatePasswordHash(ctx context.Context, userID int64, passwordHash string) error {
+	query := `
+		UPDATE users
+		SET password_hash = $1,
+			updated_at = $2
+		WHERE id = $3
+	`
+
+	_, err := r.db.ExecContext(ctx, query, passwordHash, time.Now(), userID)
+	return err
+}

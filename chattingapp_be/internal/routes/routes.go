@@ -33,6 +33,8 @@ func RegisterRoutes(
 
 	// protected
 	mux.Handle("GET /auth/me", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Auth.GetMyProfile)))
+	mux.Handle("PATCH /auth/profile", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Auth.UpdateMyProfile)))
+	mux.Handle("PATCH /auth/change-password", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Auth.ChangePassword)))
 
 	mux.Handle("POST /friends/requests", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.SendFriendRequest)))
 	mux.Handle("PATCH /friends/requests/{id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.RespondFriendRequest)))
