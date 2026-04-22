@@ -1,0 +1,269 @@
+package handler
+
+import (
+	"chattingapp_be/internal/dto"
+	"chattingapp_be/internal/service"
+	"encoding/json"
+	"net/http"
+	"strconv"
+)
+
+type ConversationHandler struct {
+	conversationService *service.ConversationService
+}
+
+func NewConversationHandler(conversationService *service.ConversationService) *ConversationHandler {
+	return &ConversationHandler{
+		conversationService: conversationService,
+	}
+}
+
+func (h *ConversationHandler) CreateDirectConversation(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	var req dto.CreateDirectConversationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	resp, err := h.conversationService.CreateDirectConversation(r.Context(), userID, req)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "tạo direct conversation thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, dto.APIResponse{
+		Success: true,
+		Message: "tạo direct conversation thành công",
+		Data:    resp,
+	})
+}
+
+func (h *ConversationHandler) ListMyConversations(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	page := 1
+	limit := 20
+
+	if v := r.URL.Query().Get("page"); v != "" {
+		if p, err := strconv.Atoi(v); err == nil && p > 0 {
+			page = p
+		}
+	}
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if l, err := strconv.Atoi(v); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	items, err := h.conversationService.ListMyConversations(r.Context(), userID, page, limit)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, dto.APIResponse{
+			Success: false,
+			Message: "lấy danh sách cuộc trò chuyện thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "lấy danh sách cuộc trò chuyện thành công",
+		Data:    items,
+	})
+}
+
+func (h *ConversationHandler) GetConversationDetail(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	conversationIDStr := r.PathValue("id")
+	conversationID, err := strconv.ParseInt(conversationIDStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "conversation id không hợp lệ",
+		})
+		return
+	}
+
+	resp, err := h.conversationService.GetConversationDetail(r.Context(), userID, conversationID)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "lấy chi tiết cuộc trò chuyện thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "lấy chi tiết cuộc trò chuyện thành công",
+		Data:    resp,
+	})
+}
+
+func (h *ConversationHandler) MarkConversationRead(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	conversationIDStr := r.PathValue("id")
+	conversationID, err := strconv.ParseInt(conversationIDStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "conversation id không hợp lệ",
+		})
+		return
+	}
+
+	var req dto.MarkConversationReadRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := h.conversationService.MarkConversationRead(r.Context(), userID, conversationID, req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "đánh dấu đã đọc thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "đánh dấu đã đọc thành công",
+	})
+}
+
+func (h *ConversationHandler) UpdateMyNickname(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	conversationIDStr := r.PathValue("id")
+	conversationID, err := strconv.ParseInt(conversationIDStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "conversation id không hợp lệ",
+		})
+		return
+	}
+
+	var req dto.UpdateConversationNicknameRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := h.conversationService.UpdateMyNickname(r.Context(), userID, conversationID, req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "cập nhật nickname thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "cập nhật nickname thành công",
+	})
+}
+
+func (h *ConversationHandler) MuteConversation(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	conversationIDStr := r.PathValue("id")
+	conversationID, err := strconv.ParseInt(conversationIDStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "conversation id không hợp lệ",
+		})
+		return
+	}
+
+	var req dto.MuteConversationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := h.conversationService.MuteConversation(r.Context(), userID, conversationID, req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "mute conversation thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "mute conversation thành công",
+	})
+}
