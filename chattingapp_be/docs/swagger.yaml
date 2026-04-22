@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   dto.AuthResponse:
     properties:
@@ -513,6 +514,11 @@ definitions:
     type: object
 info:
   contact: {}
+  description: |-
+    API tài liệu cho ChattingApp Backend.
+    Protected APIs dùng Authorization: Bearer <access_token>
+  title: ChattingApp Backend API
+  version: "1.0"
 paths:
   /auth/login:
     post:
@@ -1131,4 +1137,12 @@ paths:
       summary: Ping server
       tags:
       - System
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: 'Nhập theo dạng: Bearer <access_token>'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
