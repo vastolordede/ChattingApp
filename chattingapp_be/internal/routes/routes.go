@@ -30,6 +30,8 @@ func RegisterRoutes(
 	mux.HandleFunc("POST /auth/login", handlers.Auth.Login)
 	mux.HandleFunc("POST /auth/refresh", handlers.Auth.Refresh)
 	mux.HandleFunc("POST /auth/logout", handlers.Auth.Logout)
+	mux.HandleFunc("POST /auth/forgot-password", handlers.Auth.ForgotPassword)
+	mux.HandleFunc("POST /auth/reset-password", handlers.Auth.ResetPassword)
 
 	// protected
 	mux.Handle("GET /auth/me", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Auth.GetMyProfile)))

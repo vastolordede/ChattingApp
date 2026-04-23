@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 	"fmt"
-
+	"crypto/rand"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,6 +21,7 @@ type AuthService struct {
 	userRepo         *repository.UserRepository
 	userDeviceRepo   *repository.UserDeviceRepository
 	refreshTokenRepo *repository.UserRefreshTokenRepository
+	passwordResetTokenRepo *repository.PasswordResetTokenRepository
 	jwtManager       *util.JWTManager
 	refreshDuration  time.Duration
 }
@@ -29,6 +30,7 @@ func NewAuthService(
 	userRepo *repository.UserRepository,
 	userDeviceRepo *repository.UserDeviceRepository,
 	refreshTokenRepo *repository.UserRefreshTokenRepository,
+	passwordResetTokenRepo *repository.PasswordResetTokenRepository,
 	jwtManager *util.JWTManager,
 	refreshExpiresHours int,
 ) *AuthService {
@@ -36,6 +38,7 @@ func NewAuthService(
 		userRepo:         userRepo,
 		userDeviceRepo:   userDeviceRepo,
 		refreshTokenRepo: refreshTokenRepo,
+		passwordResetTokenRepo: passwordResetTokenRepo,
 		jwtManager:       jwtManager,
 		refreshDuration:  time.Duration(refreshExpiresHours) * time.Hour,
 	}
@@ -44,6 +47,13 @@ func NewAuthService(
 func hashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])
+}
+func generateRawResetToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }
 
 func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.AuthResponse, error) {
@@ -500,6 +510,103 @@ func (s *AuthService) ChangePassword(ctx context.Context, userID int64, req dto.
 	}
 
 	if err := s.userRepo.UpdatePasswordHash(ctx, userID, string(newPasswordHashBytes)); err != nil {
+		return err
+	}
+
+	return nil
+}
+func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPasswordRequest) error {
+	email := strings.TrimSpace(strings.ToLower(req.Email))
+	if email == "" {
+		return errors.New("email không được để trống")
+	}
+
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	// Không lộ email có tồn tại hay không
+	if user == nil {
+		return nil
+	}
+
+	rawToken, err := generateRawResetToken()
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	resetToken := &models.PasswordResetToken{
+		UserID:    user.ID,
+		TokenHash: hashToken(rawToken),
+		ExpiresAt: now.Add(15 * time.Minute),
+		UsedAt:    sql.NullTime{Valid: false},
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	_, err = s.passwordResetTokenRepo.Create(ctx, resetToken)
+	if err != nil {
+		return err
+	}
+
+	// TODO: thay bằng gửi email thật
+	fmt.Println("RESET PASSWORD TOKEN:", rawToken)
+	fmt.Printf("RESET LINK: http://localhost:3000/reset-password?token=%s\n", rawToken)
+
+	return nil
+}
+func (s *AuthService) ResetPassword(ctx context.Context, req dto.ResetPasswordRequest) error {
+	req.Token = strings.TrimSpace(req.Token)
+	req.NewPassword = strings.TrimSpace(req.NewPassword)
+	req.ConfirmNewPassword = strings.TrimSpace(req.ConfirmNewPassword)
+
+	if req.Token == "" || req.NewPassword == "" || req.ConfirmNewPassword == "" {
+		return errors.New("thiếu thông tin reset mật khẩu")
+	}
+
+	if req.NewPassword != req.ConfirmNewPassword {
+		return errors.New("mật khẩu mới xác nhận không khớp")
+	}
+
+	storedToken, err := s.passwordResetTokenRepo.GetByTokenHash(ctx, hashToken(req.Token))
+	if err != nil {
+		return err
+	}
+	if storedToken == nil {
+		return errors.New("token reset không hợp lệ")
+	}
+
+	if storedToken.UsedAt.Valid {
+		return errors.New("token reset đã được sử dụng")
+	}
+
+	if time.Now().After(storedToken.ExpiresAt) {
+		return errors.New("token reset đã hết hạn")
+	}
+
+	user, err := s.userRepo.GetByID(ctx, storedToken.UserID)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("không tìm thấy user")
+	}
+
+	newPasswordHashBytes, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	if err := s.userRepo.UpdatePasswordHash(ctx, user.ID, string(newPasswordHashBytes)); err != nil {
+		return err
+	}
+
+	if err := s.passwordResetTokenRepo.MarkUsed(ctx, storedToken.ID, sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}); err != nil {
 		return err
 	}
 

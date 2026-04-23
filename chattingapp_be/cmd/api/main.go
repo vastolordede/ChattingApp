@@ -54,11 +54,14 @@ func main() {
 	messageAttachmentRepo := repository.NewMessageAttachmentRepository(db)
 	userDeviceRepo := repository.NewUserDeviceRepository(db)
 	userRefreshTokenRepo := repository.NewUserRefreshTokenRepository(db)
+	passwordResetTokenRepo := repository.NewPasswordResetTokenRepository(db)
+	
 
 	authService := service.NewAuthService(
 		userRepo,
 		userDeviceRepo,
 		userRefreshTokenRepo,
+		passwordResetTokenRepo,
 		jwtManager,
 		cfg.RefreshExpiresHours,
 	)
