@@ -386,3 +386,26 @@ func UpdateMyProfileDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /auth/change-password [patch]
 func ChangePasswordDoc() {}
+// ForgotPasswordDoc godoc
+// @Summary Quên mật khẩu
+// @Description Gửi email chứa hướng dẫn đặt lại mật khẩu
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.ForgotPasswordRequest true "Email cần khôi phục"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/forgot-password [post]
+func ForgotPasswordDoc() {}
+
+// ResetPasswordDoc godoc
+// @Summary Đặt lại mật khẩu
+// @Description Dùng token reset để đặt lại mật khẩu mới
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.ResetPasswordRequest true "Token và mật khẩu mới"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/reset-password [post]
+func ResetPasswordDoc() {}

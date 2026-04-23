@@ -66,6 +66,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/forgot-password": {
+            "post": {
+                "description": "Gửi email chứa hướng dẫn đặt lại mật khẩu",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Quên mật khẩu",
+                "parameters": [
+                    {
+                        "description": "Email cần khôi phục",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ForgotPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.SuccessOnlyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Đăng nhập bằng identifier và password",
@@ -303,6 +343,46 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/swaggerdocs.AuthResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "description": "Dùng token reset để đặt lại mật khẩu mới",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Đặt lại mật khẩu",
+                "parameters": [
+                    {
+                        "description": "Token và mật khẩu mới",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.SuccessOnlyResponse"
                         }
                     },
                     "400": {
@@ -1268,6 +1348,18 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ForgotPasswordRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
         "dto.FriendListItemResponse": {
             "type": "object",
             "properties": {
@@ -1585,6 +1677,29 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3
+                }
+            }
+        },
+        "dto.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "confirm_new_password",
+                "new_password",
+                "token"
+            ],
+            "properties": {
+                "confirm_new_password": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 6
+                },
+                "new_password": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 6
+                },
+                "token": {
+                    "type": "string"
                 }
             }
         },

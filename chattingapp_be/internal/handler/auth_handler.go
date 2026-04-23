@@ -225,3 +225,54 @@ func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		Message: "đổi mật khẩu thành công",
 	})
 }
+func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var req dto.ForgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := h.authService.ForgotPassword(r.Context(), req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "gửi yêu cầu quên mật khẩu thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "nếu email tồn tại, hệ thống đã gửi hướng dẫn đặt lại mật khẩu",
+	})
+}
+
+func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req dto.ResetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := h.authService.ResetPassword(r.Context(), req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "đặt lại mật khẩu thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "đặt lại mật khẩu thành công",
+	})
+}

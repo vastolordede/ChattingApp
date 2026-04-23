@@ -122,6 +122,14 @@ definitions:
     required:
     - content
     type: object
+  dto.ForgotPasswordRequest:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+    required:
+    - email
+    type: object
   dto.FriendListItemResponse:
     properties:
       created_at:
@@ -337,6 +345,23 @@ definitions:
     - password
     - phone_number
     - username
+    type: object
+  dto.ResetPasswordRequest:
+    properties:
+      confirm_new_password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      new_password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      token:
+        type: string
+    required:
+    - confirm_new_password
+    - new_password
+    - token
     type: object
   dto.RespondFriendRequestRequest:
     properties:
@@ -580,6 +605,32 @@ paths:
       summary: Đổi mật khẩu
       tags:
       - Auth
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Gửi email chứa hướng dẫn đặt lại mật khẩu
+      parameters:
+      - description: Email cần khôi phục
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      summary: Quên mật khẩu
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -737,6 +788,32 @@ paths:
           schema:
             $ref: '#/definitions/swaggerdocs.ErrorResponse'
       summary: Đăng ký tài khoản
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Dùng token reset để đặt lại mật khẩu mới
+      parameters:
+      - description: Token và mật khẩu mới
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      summary: Đặt lại mật khẩu
       tags:
       - Auth
   /conversations:
