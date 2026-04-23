@@ -411,6 +411,39 @@ definitions:
       full_name:
         type: string
     type: object
+  dto.UserDeviceResponse:
+    properties:
+      app_version:
+        type: string
+      created_at:
+        type: string
+      device_name:
+        type: string
+      device_type:
+        type: string
+      device_uuid:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_trusted:
+        type: boolean
+      last_seen_at:
+        type: string
+      os_version:
+        type: string
+      platform:
+        type: string
+      push_token:
+        type: string
+      registered_at:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
   dto.UserResponse:
     properties:
       avatar_url:
@@ -549,6 +582,19 @@ definitions:
     properties:
       message:
         example: thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.UserDeviceListResponseEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.UserDeviceResponse'
+        type: array
+      message:
+        example: Lấy danh sách thiết bị thành công
         type: string
       success:
         example: true
@@ -1023,6 +1069,187 @@ paths:
       summary: Tạo direct conversation
       tags:
       - Conversations
+  /devices:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách thiết bị đã đăng ký của user hiện tại
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.UserDeviceListResponseEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Danh sách thiết bị của tôi
+      tags:
+      - Devices
+  /devices/{uuid}:
+    delete:
+      consumes:
+      - application/json
+      description: Disable thiết bị và revoke toàn bộ refresh token của thiết bị đó
+      parameters:
+      - description: Device UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Xóa thiết bị
+      tags:
+      - Devices
+  /devices/{uuid}/disable:
+    patch:
+      consumes:
+      - application/json
+      description: Vô hiệu hóa thiết bị và revoke toàn bộ refresh token của thiết
+        bị đó
+      parameters:
+      - description: Device UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Disable thiết bị
+      tags:
+      - Devices
+  /devices/{uuid}/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke toàn bộ refresh token của thiết bị theo UUID
+      parameters:
+      - description: Device UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout theo thiết bị
+      tags:
+      - Devices
+  /devices/{uuid}/trust:
+    patch:
+      consumes:
+      - application/json
+      description: Đánh dấu thiết bị là đáng tin cậy
+      parameters:
+      - description: Device UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Trust thiết bị
+      tags:
+      - Devices
+  /devices/{uuid}/untrust:
+    patch:
+      consumes:
+      - application/json
+      description: Bỏ đánh dấu thiết bị là đáng tin cậy
+      parameters:
+      - description: Device UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Untrust thiết bị
+      tags:
+      - Devices
   /devices/register:
     post:
       consumes:

@@ -6,15 +6,23 @@ import (
 	"chattingapp_be/internal/repository"
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 )
 
 type UserDeviceService struct {
 	repo *repository.UserDeviceRepository
+	tokenRepo  *repository.UserRefreshTokenRepository
 }
 
-func NewUserDeviceService(repo *repository.UserDeviceRepository) *UserDeviceService {
-	return &UserDeviceService{repo: repo}
+func NewUserDeviceService(
+	repo *repository.UserDeviceRepository,
+	tokenRepo *repository.UserRefreshTokenRepository,
+) *UserDeviceService {
+	return &UserDeviceService{
+		repo:      repo,
+		tokenRepo: tokenRepo,
+	}
 }
 
 func (s *UserDeviceService) RegisterOrUpdateDevice(
@@ -63,4 +71,70 @@ func (s *UserDeviceService) RegisterOrUpdateDevice(
 
 func (s *UserDeviceService) ListMyDevices(ctx context.Context, userID int64) ([]models.UserDevice, error) {
 	return s.repo.ListByUserID(ctx, userID)
+}
+func (s *UserDeviceService) DeleteDevice(ctx context.Context, userID int64, uuid string) error {
+	device, err := s.repo.GetByUUIDAndUserID(ctx, uuid, userID)
+	if err != nil {
+		return err
+	}
+	if device == nil {
+		return errors.New("device not found")
+	}
+
+	if err := s.repo.DisableByUUID(ctx, uuid, userID); err != nil {
+		return err
+	}
+
+	return s.tokenRepo.RevokeByDeviceID(ctx, device.ID)
+}
+
+func (s *UserDeviceService) LogoutDevice(ctx context.Context, userID int64, uuid string) error {
+	device, err := s.repo.GetByUUIDAndUserID(ctx, uuid, userID)
+	if err != nil {
+		return err
+	}
+	if device == nil {
+		return errors.New("device not found")
+	}
+
+	return s.tokenRepo.RevokeByDeviceID(ctx, device.ID)
+}
+func (s *UserDeviceService) DisableDevice(ctx context.Context, userID int64, uuid string) error {
+	device, err := s.repo.GetByUUIDAndUserID(ctx, uuid, userID)
+	if err != nil {
+		return err
+	}
+	if device == nil {
+		return errors.New("device not found")
+	}
+
+	if err := s.repo.DisableByUUID(ctx, uuid, userID); err != nil {
+		return err
+	}
+
+	return s.tokenRepo.RevokeByDeviceID(ctx, device.ID)
+}
+
+func (s *UserDeviceService) TrustDevice(ctx context.Context, userID int64, uuid string) error {
+	device, err := s.repo.GetByUUIDAndUserID(ctx, uuid, userID)
+	if err != nil {
+		return err
+	}
+	if device == nil {
+		return errors.New("device not found")
+	}
+
+	return s.repo.SetTrustedByUUID(ctx, uuid, userID, true)
+}
+
+func (s *UserDeviceService) UntrustDevice(ctx context.Context, userID int64, uuid string) error {
+	device, err := s.repo.GetByUUIDAndUserID(ctx, uuid, userID)
+	if err != nil {
+		return err
+	}
+	if device == nil {
+		return errors.New("device not found")
+	}
+
+	return s.repo.SetTrustedByUUID(ctx, uuid, userID, false)
 }
