@@ -308,3 +308,46 @@ func (r *FriendRequestRepository) ListIncomingPendingByUserID(
 
 	return result, rows.Err()
 }
+func (r *FriendRequestRepository) ListOutgoingPendingByUserID(
+	ctx context.Context,
+	userID int64,
+	limit, offset int,
+) ([]models.FriendRequest, error) {
+	query := `
+		SELECT fr.id, fr.status, fr.message, fr.created_at, fr.updated_at, fr.responded_at, fr.expired_at
+		FROM friend_requests fr
+		JOIN friend_request_members sender_m
+			ON sender_m.friend_request_id = fr.id AND sender_m.role = 'sender'
+		JOIN friend_request_members receiver_m
+			ON receiver_m.friend_request_id = fr.id AND receiver_m.role = 'receiver'
+		WHERE fr.status = 'pending'
+		  AND sender_m.user_id = $1
+		ORDER BY fr.created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.FriendRequest
+	for rows.Next() {
+		var item models.FriendRequest
+		if err := rows.Scan(
+			&item.ID,
+			&item.Status,
+			&item.Message,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.RespondedAt,
+			&item.ExpiredAt,
+		); err != nil {
+			return nil, err
+		}
+		result = append(result, item)
+	}
+
+	return result, rows.Err()
+}

@@ -41,6 +41,13 @@ func RegisterRoutes(
 	mux.Handle("POST /friends/requests", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.SendFriendRequest)))
 	mux.Handle("PATCH /friends/requests/{id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.RespondFriendRequest)))
 	mux.Handle("GET /friends", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.ListFriends)))
+	mux.Handle("GET /friends/requests/incoming", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.ListIncomingRequests)))
+	mux.Handle("GET /friends/requests/outgoing", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.ListOutgoingRequests)))
+	mux.Handle("DELETE /friends/requests/{id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.CancelFriendRequest)))
+	mux.Handle("DELETE /friends/{user_id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.Unfriend)))
+	mux.Handle("GET /friends/search", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.SearchUsers)))
+	mux.Handle("GET /friends/{user_id}/mutual", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.ListMutualFriends)))
+	mux.Handle("POST /friends/{user_id}/block", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Friend.BlockUser)))
 
 	mux.Handle("POST /conversations/direct", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.CreateDirectConversation)))
 	mux.Handle("GET /conversations", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.ListMyConversations)))

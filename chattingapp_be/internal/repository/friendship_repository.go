@@ -316,3 +316,47 @@ func (r *FriendshipRepository) ExistsActivePair(
 
 	return exists, nil
 }
+func (r *FriendshipRepository) ListMutualFriendUserIDs(
+	ctx context.Context,
+	userAID, userBID int64,
+) ([]int64, error) {
+	query := `
+		SELECT DISTINCT a.friend_user_id
+		FROM (
+			SELECT fm2.user_id AS friend_user_id
+			FROM friendships f
+			JOIN friendship_members fm1 ON fm1.friendship_id = f.id
+			JOIN friendship_members fm2 ON fm2.friendship_id = f.id
+			WHERE f.status = 'active'
+			  AND fm1.user_id = $1
+			  AND fm2.user_id <> $1
+		) a
+		JOIN (
+			SELECT fm2.user_id AS friend_user_id
+			FROM friendships f
+			JOIN friendship_members fm1 ON fm1.friendship_id = f.id
+			JOIN friendship_members fm2 ON fm2.friendship_id = f.id
+			WHERE f.status = 'active'
+			  AND fm1.user_id = $2
+			  AND fm2.user_id <> $2
+		) b ON a.friend_user_id = b.friend_user_id
+		ORDER BY a.friend_user_id ASC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userAID, userBID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []int64
+	for rows.Next() {
+		var friendUserID int64
+		if err := rows.Scan(&friendUserID); err != nil {
+			return nil, err
+		}
+		result = append(result, friendUserID)
+	}
+
+	return result, rows.Err()
+}
