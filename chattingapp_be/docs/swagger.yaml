@@ -145,6 +145,27 @@ definitions:
       updated_at:
         type: string
     type: object
+  dto.FriendRequestResponse:
+    properties:
+      created_at:
+        type: string
+      expired_at:
+        type: string
+      id:
+        type: integer
+      message:
+        type: string
+      receiver:
+        $ref: '#/definitions/dto.FriendUserSummary'
+      responded_at:
+        type: string
+      sender:
+        $ref: '#/definitions/dto.FriendUserSummary'
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
   dto.FriendUserSummary:
     properties:
       avatar_url:
@@ -1309,6 +1330,102 @@ paths:
       summary: Lấy danh sách bạn bè
       tags:
       - Friends
+  /friends/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Kết thúc quan hệ bạn bè giữa user hiện tại và user đích
+      parameters:
+      - description: Target User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hủy kết bạn
+      tags:
+      - Friends
+  /friends/{user_id}/block:
+    post:
+      consumes:
+      - application/json
+      description: Block user đích, đồng thời kết thúc friendship và đóng mọi lời
+        mời pending giữa hai bên
+      parameters:
+      - description: Target User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Block user
+      tags:
+      - Friends
+  /friends/{user_id}/mutual:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách bạn chung giữa user hiện tại và user đích
+      parameters:
+      - description: Target User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.FriendUserSummary'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Danh sách bạn chung
+      tags:
+      - Friends
   /friends/requests:
     post:
       consumes:
@@ -1342,6 +1459,36 @@ paths:
       tags:
       - Friends
   /friends/requests/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Chỉ người gửi mới được hủy lời mời đang pending
+      parameters:
+      - description: Friend Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hủy lời mời kết bạn
+      tags:
+      - Friends
     patch:
       consumes:
       - application/json
@@ -1376,6 +1523,95 @@ paths:
       security:
       - BearerAuth: []
       summary: Phản hồi lời mời kết bạn
+      tags:
+      - Friends
+  /friends/requests/incoming:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách lời mời kết bạn đang chờ mà người hiện tại là người
+        nhận
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.FriendRequestResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Danh sách lời mời đến
+      tags:
+      - Friends
+  /friends/requests/outgoing:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách lời mời kết bạn đang chờ mà người hiện tại là người
+        gửi
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.FriendRequestResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Danh sách lời mời đi
+      tags:
+      - Friends
+  /friends/search:
+    get:
+      consumes:
+      - application/json
+      description: Tìm user theo username hoặc full_name
+      parameters:
+      - description: Keyword
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.FriendUserSummary'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tìm user
       tags:
       - Friends
   /messages:

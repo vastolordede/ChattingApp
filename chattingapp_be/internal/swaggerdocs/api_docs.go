@@ -492,3 +492,97 @@ func TrustDeviceDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /devices/{uuid}/untrust [patch]
 func UntrustDeviceDoc() {}
+// ListIncomingFriendRequestsDoc godoc
+// @Summary Danh sách lời mời đến
+// @Description Lấy danh sách lời mời kết bạn đang chờ mà người hiện tại là người nhận
+// @Tags Friends
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Success 200 {array} dto.FriendRequestResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /friends/requests/incoming [get]
+func ListIncomingFriendRequestsDoc() {}
+
+// ListOutgoingFriendRequestsDoc godoc
+// @Summary Danh sách lời mời đi
+// @Description Lấy danh sách lời mời kết bạn đang chờ mà người hiện tại là người gửi
+// @Tags Friends
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Success 200 {array} dto.FriendRequestResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /friends/requests/outgoing [get]
+func ListOutgoingFriendRequestsDoc() {}
+
+// CancelFriendRequestDoc godoc
+// @Summary Hủy lời mời kết bạn
+// @Description Chỉ người gửi mới được hủy lời mời đang pending
+// @Tags Friends
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "Friend Request ID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /friends/requests/{id} [delete]
+func CancelFriendRequestDoc() {}
+
+// UnfriendDoc godoc
+// @Summary Hủy kết bạn
+// @Description Kết thúc quan hệ bạn bè giữa user hiện tại và user đích
+// @Tags Friends
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param user_id path int true "Target User ID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /friends/{user_id} [delete]
+func UnfriendDoc() {}
+// SearchUsersDoc godoc
+// @Summary Tìm user
+// @Description Tìm user theo username hoặc full_name
+// @Tags Friends
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param q query string true "Keyword"
+// @Success 200 {array} dto.FriendUserSummary
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /friends/search [get]
+func SearchUsersDoc() {}
+
+// ListMutualFriendsDoc godoc
+// @Summary Danh sách bạn chung
+// @Description Lấy danh sách bạn chung giữa user hiện tại và user đích
+// @Tags Friends
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param user_id path int true "Target User ID"
+// @Success 200 {array} dto.FriendUserSummary
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /friends/{user_id}/mutual [get]
+func ListMutualFriendsDoc() {}
+
+// BlockUserDoc godoc
+// @Summary Block user
+// @Description Block user đích, đồng thời kết thúc friendship và đóng mọi lời mời pending giữa hai bên
+// @Tags Friends
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param user_id path int true "Target User ID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /friends/{user_id}/block [post]
+func BlockUserDoc() {}
