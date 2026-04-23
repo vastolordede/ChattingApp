@@ -55,4 +55,10 @@ func RegisterRoutes(
 	mux.Handle("GET /messages", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListMessages)))
 
 	mux.Handle("POST /devices/register", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.RegisterDevice)))
+	mux.Handle("GET /devices", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.ListDevices)))
+	mux.Handle("DELETE /devices/{uuid}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.DeleteDevice)))
+	mux.Handle("POST /devices/{uuid}/logout", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.LogoutDevice)))
+	mux.Handle("PATCH /devices/{uuid}/disable", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.DisableDevice)))
+	mux.Handle("PATCH /devices/{uuid}/trust", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.TrustDevice)))
+	mux.Handle("PATCH /devices/{uuid}/untrust", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.UntrustDevice)))
 }

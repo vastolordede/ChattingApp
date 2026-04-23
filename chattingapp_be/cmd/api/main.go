@@ -90,7 +90,7 @@ func main() {
 		userRepo,
 	)
 
-	userDeviceService := service.NewUserDeviceService(userDeviceRepo)
+	userDeviceService := service.NewUserDeviceService(userDeviceRepo, userRefreshTokenRepo)
 
 	authHandler := handler.NewAuthHandler(authService)
 	friendHandler := handler.NewFriendHandler(friendService)

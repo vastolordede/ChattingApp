@@ -224,3 +224,58 @@ func (r *UserDeviceRepository) ListByUserID(ctx context.Context, userID int64) (
 
 	return result, rows.Err()
 }
+func (r *UserDeviceRepository) GetByUUIDAndUserID(ctx context.Context, uuid string, userID int64) (*models.UserDevice, error) {
+	query := `
+		SELECT id, user_id, device_uuid, device_name, device_type, platform,
+		       app_version, os_version, push_token, is_trusted, is_active,
+		       last_seen_at, registered_at, created_at, updated_at
+		FROM user_devices
+		WHERE device_uuid = $1 AND user_id = $2
+		LIMIT 1
+	`
+
+	var d models.UserDevice
+	err := r.db.QueryRowContext(ctx, query, uuid, userID).Scan(
+		&d.ID,
+		&d.UserID,
+		&d.DeviceUUID,
+		&d.DeviceName,
+		&d.DeviceType,
+		&d.Platform,
+		&d.AppVersion,
+		&d.OSVersion,
+		&d.PushToken,
+		&d.IsTrusted,
+		&d.IsActive,
+		&d.LastSeenAt,
+		&d.RegisteredAt,
+		&d.CreatedAt,
+		&d.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &d, nil
+}
+func (r *UserDeviceRepository) DisableByUUID(ctx context.Context, uuid string, userID int64) error {
+	query := `
+		UPDATE user_devices
+		SET is_active = false, updated_at = NOW()
+		WHERE device_uuid = $1 AND user_id = $2
+	`
+	_, err := r.db.ExecContext(ctx, query, uuid, userID)
+	return err
+}
+func (r *UserDeviceRepository) SetTrustedByUUID(ctx context.Context, uuid string, userID int64, trusted bool) error {
+	query := `
+		UPDATE user_devices
+		SET is_trusted = $1, updated_at = NOW()
+		WHERE device_uuid = $2 AND user_id = $3
+	`
+	_, err := r.db.ExecContext(ctx, query, trusted, uuid, userID)
+	return err
+}

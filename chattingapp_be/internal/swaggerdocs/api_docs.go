@@ -83,7 +83,11 @@ type MessageListResponseEnvelope struct {
 	Message string                `json:"message" example:"lấy danh sách tin nhắn thành công"`
 	Data    []dto.MessageResponse `json:"data"`
 }
-
+type UserDeviceListResponseEnvelope struct {
+	Success bool                     `json:"success" example:"true"`
+	Message string                   `json:"message,omitempty" example:"Lấy danh sách thiết bị thành công"`
+	Data    []dto.UserDeviceResponse `json:"data"`
+}
 // ============================================================
 // DOC ENDPOINTS
 // Chỉ là function rỗng để gắn annotation.
@@ -409,3 +413,82 @@ func ForgotPasswordDoc() {}
 // @Failure 400 {object} ErrorResponse
 // @Router /auth/reset-password [post]
 func ResetPasswordDoc() {}
+// ListMyDevicesDoc godoc
+// @Summary Danh sách thiết bị của tôi
+// @Description Lấy danh sách thiết bị đã đăng ký của user hiện tại
+// @Tags Devices
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Success 200 {object} UserDeviceListResponseEnvelope
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /devices [get]
+func ListMyDevicesDoc() {}
+// DeleteDeviceDoc godoc
+// @Summary Xóa thiết bị
+// @Description Disable thiết bị và revoke toàn bộ refresh token của thiết bị đó
+// @Tags Devices
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param uuid path string true "Device UUID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /devices/{uuid} [delete]
+func DeleteDeviceDoc() {}
+// LogoutDeviceDoc godoc
+// @Summary Logout theo thiết bị
+// @Description Revoke toàn bộ refresh token của thiết bị theo UUID
+// @Tags Devices
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param uuid path string true "Device UUID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /devices/{uuid}/logout [post]
+func LogoutDeviceDoc() {}
+// DisableDeviceDoc godoc
+// @Summary Disable thiết bị
+// @Description Vô hiệu hóa thiết bị và revoke toàn bộ refresh token của thiết bị đó
+// @Tags Devices
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param uuid path string true "Device UUID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /devices/{uuid}/disable [patch]
+func DisableDeviceDoc() {}
+
+// TrustDeviceDoc godoc
+// @Summary Trust thiết bị
+// @Description Đánh dấu thiết bị là đáng tin cậy
+// @Tags Devices
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param uuid path string true "Device UUID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /devices/{uuid}/trust [patch]
+func TrustDeviceDoc() {}
+
+// UntrustDeviceDoc godoc
+// @Summary Untrust thiết bị
+// @Description Bỏ đánh dấu thiết bị là đáng tin cậy
+// @Tags Devices
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param uuid path string true "Device UUID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /devices/{uuid}/untrust [patch]
+func UntrustDeviceDoc() {}

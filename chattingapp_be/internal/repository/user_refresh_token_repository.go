@@ -112,3 +112,12 @@ func (r *UserRefreshTokenRepository) UpdateLastUsedAt(ctx context.Context, id in
 	_, err := r.db.ExecContext(ctx, query, lastUsedAt, id)
 	return err
 }
+func (r *UserRefreshTokenRepository) RevokeByDeviceID(ctx context.Context, deviceID int64) error {
+	query := `
+		UPDATE user_refresh_tokens
+		SET revoked_at = NOW(), updated_at = NOW()
+		WHERE user_device_id = $1 AND revoked_at IS NULL
+	`
+	_, err := r.db.ExecContext(ctx, query, deviceID)
+	return err
+}
