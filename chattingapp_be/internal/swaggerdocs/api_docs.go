@@ -88,6 +88,22 @@ type UserDeviceListResponseEnvelope struct {
 	Message string                   `json:"message,omitempty" example:"Lấy danh sách thiết bị thành công"`
 	Data    []dto.UserDeviceResponse `json:"data"`
 }
+type UnreadCountData struct {
+	UnreadCount int64 `json:"unread_count" example:"5"`
+}
+
+type UnreadCountResponseEnvelope struct {
+	Success bool            `json:"success" example:"true"`
+	Message string          `json:"message" example:"lấy unread count thành công"`
+	Data    UnreadCountData `json:"data"`
+}
+type PinConversationRequest struct {
+	IsPinned bool `json:"is_pinned"`
+}
+
+type ArchiveConversationRequest struct {
+	IsArchived bool `json:"is_archived"`
+}
 // ============================================================
 // DOC ENDPOINTS
 // Chỉ là function rỗng để gắn annotation.
@@ -586,3 +602,44 @@ func ListMutualFriendsDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /friends/{user_id}/block [post]
 func BlockUserDoc() {}
+// PinConversationDoc godoc
+// @Summary Pin conversation
+// @Description Ghim hoặc bỏ ghim conversation
+// @Tags Conversations
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "Conversation ID"
+// @Param request body dto.PinConversationRequest true "Trạng thái pin"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /conversations/{id}/pin [patch]
+func PinConversationDoc() {}
+
+// ArchiveConversationDoc godoc
+// @Summary Archive conversation
+// @Description Lưu trữ hoặc bỏ lưu trữ conversation
+// @Tags Conversations
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "Conversation ID"
+// @Param request body dto.ArchiveConversationRequest true "Trạng thái archive"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /conversations/{id}/archive [patch]
+func ArchiveConversationDoc() {}
+
+// GetUnreadCountDoc godoc
+// @Summary Lấy unread count
+// @Description Lấy tổng số conversation chưa đọc của user hiện tại
+// @Tags Conversations
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} swaggerdocs.UnreadCountResponseEnvelope
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /conversations/unread-count [get]
+func GetUnreadCountDoc() {}

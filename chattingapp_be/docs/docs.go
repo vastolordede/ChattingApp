@@ -498,6 +498,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/conversations/unread-count": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy tổng số conversation chưa đọc của user hiện tại",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Lấy unread count",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.UnreadCountResponseEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/conversations/{id}": {
             "get": {
                 "security": [
@@ -527,6 +564,64 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swaggerdocs.ConversationDetailResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/{id}/archive": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lưu trữ hoặc bỏ lưu trữ conversation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Archive conversation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Trạng thái archive",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ArchiveConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.SuccessOnlyResponse"
                         }
                     },
                     "400": {
@@ -635,6 +730,64 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/dto.UpdateConversationNicknameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.SuccessOnlyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversations/{id}/pin": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Ghim hoặc bỏ ghim conversation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Pin conversation",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Trạng thái pin",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PinConversationRequest"
                         }
                     }
                 ],
@@ -1785,6 +1938,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.ArchiveConversationRequest": {
+            "type": "object",
+            "properties": {
+                "is_archived": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.AuthResponse": {
             "type": "object",
             "properties": {
@@ -2262,6 +2423,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PinConversationRequest": {
+            "type": "object",
+            "properties": {
+                "is_pinned": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.RegisterDeviceRequest": {
             "type": "object",
             "required": [
@@ -2682,6 +2851,31 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "thành công"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "swaggerdocs.UnreadCountData": {
+            "type": "object",
+            "properties": {
+                "unread_count": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "swaggerdocs.UnreadCountResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/swaggerdocs.UnreadCountData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "lấy unread count thành công"
                 },
                 "success": {
                     "type": "boolean",

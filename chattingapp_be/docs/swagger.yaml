@@ -1,5 +1,10 @@
 basePath: /
 definitions:
+  dto.ArchiveConversationRequest:
+    properties:
+      is_archived:
+        type: boolean
+    type: object
   dto.AuthResponse:
     properties:
       access_token:
@@ -315,6 +320,11 @@ definitions:
       mute_until:
         type: string
     type: object
+  dto.PinConversationRequest:
+    properties:
+      is_pinned:
+        type: boolean
+    type: object
   dto.RegisterDeviceRequest:
     properties:
       app_version:
@@ -603,6 +613,23 @@ definitions:
     properties:
       message:
         example: thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.UnreadCountData:
+    properties:
+      unread_count:
+        example: 5
+        type: integer
+    type: object
+  swaggerdocs.UnreadCountResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/swaggerdocs.UnreadCountData'
+      message:
+        example: lấy unread count thành công
         type: string
       success:
         example: true
@@ -946,6 +973,43 @@ paths:
       summary: Lấy chi tiết cuộc trò chuyện
       tags:
       - Conversations
+  /conversations/{id}/archive:
+    patch:
+      consumes:
+      - application/json
+      description: Lưu trữ hoặc bỏ lưu trữ conversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Trạng thái archive
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ArchiveConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Archive conversation
+      tags:
+      - Conversations
   /conversations/{id}/mute:
     patch:
       consumes:
@@ -1021,6 +1085,43 @@ paths:
       summary: Cập nhật nickname trong conversation
       tags:
       - Conversations
+  /conversations/{id}/pin:
+    patch:
+      consumes:
+      - application/json
+      description: Ghim hoặc bỏ ghim conversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Trạng thái pin
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PinConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.SuccessOnlyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pin conversation
+      tags:
+      - Conversations
   /conversations/{id}/read:
     patch:
       consumes:
@@ -1088,6 +1189,29 @@ paths:
       security:
       - BearerAuth: []
       summary: Tạo direct conversation
+      tags:
+      - Conversations
+  /conversations/unread-count:
+    get:
+      description: Lấy tổng số conversation chưa đọc của user hiện tại
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.UnreadCountResponseEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy unread count
       tags:
       - Conversations
   /devices:

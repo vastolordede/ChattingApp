@@ -267,3 +267,124 @@ func (h *ConversationHandler) MuteConversation(w http.ResponseWriter, r *http.Re
 		Message: "mute conversation thành công",
 	})
 }
+func (h *ConversationHandler) PinConversation(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	idStr := r.PathValue("id")
+	conversationID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "conversation id không hợp lệ",
+		})
+		return
+	}
+
+	var req struct {
+		IsPinned bool `json:"is_pinned"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+		})
+		return
+	}
+
+	err = h.conversationService.PinConversation(r.Context(), conversationID, userID, req.IsPinned)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, dto.APIResponse{
+			Success: false,
+			Message: "pin conversation thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "pin conversation thành công",
+	})
+}
+func (h *ConversationHandler) ArchiveConversation(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	idStr := r.PathValue("id")
+	conversationID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "conversation id không hợp lệ",
+		})
+		return
+	}
+
+	var req struct {
+		IsArchived bool `json:"is_archived"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+		})
+		return
+	}
+
+	err = h.conversationService.ArchiveConversation(r.Context(), conversationID, userID, req.IsArchived)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, dto.APIResponse{
+			Success: false,
+			Message: "archive conversation thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "archive conversation thành công",
+	})
+}
+func (h *ConversationHandler) GetUnreadCount(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	count, err := h.conversationService.GetUnreadCount(r.Context(), userID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, dto.APIResponse{
+			Success: false,
+			Message: "lấy unread count thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Data: map[string]int64{
+			"unread_count": count,
+		},
+	})
+}

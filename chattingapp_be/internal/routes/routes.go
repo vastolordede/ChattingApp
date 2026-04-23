@@ -55,6 +55,9 @@ func RegisterRoutes(
 	mux.Handle("PATCH /conversations/{id}/read", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.MarkConversationRead)))
 	mux.Handle("PATCH /conversations/{id}/nickname", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.UpdateMyNickname)))
 	mux.Handle("PATCH /conversations/{id}/mute", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.MuteConversation)))
+	mux.Handle("PATCH /conversations/{id}/pin", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.PinConversation)))
+	mux.Handle("PATCH /conversations/{id}/archive", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.ArchiveConversation)))
+	mux.Handle("GET /conversations/unread-count", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.GetUnreadCount)))
 
 	mux.Handle("POST /messages", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.SendMessage)))
 	mux.Handle("PATCH /messages/{id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.EditMessage)))

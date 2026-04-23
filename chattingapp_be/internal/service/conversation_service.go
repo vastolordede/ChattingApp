@@ -235,12 +235,9 @@ func (s *ConversationService) MarkConversationRead(
 	userID, conversationID int64,
 	req dto.MarkConversationReadRequest,
 ) error {
-	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, conversationID, userID)
+	_, err := s.requireMember(ctx, userID, conversationID)
 	if err != nil {
 		return err
-	}
-	if member == nil || !member.IsActive {
-		return errors.New("bạn không thuộc cuộc trò chuyện này")
 	}
 
 	msg, err := s.messageRepo.GetByID(ctx, req.LastReadMessageID)
@@ -286,12 +283,9 @@ func (s *ConversationService) MuteConversation(
 	userID, conversationID int64,
 	req dto.MuteConversationRequest,
 ) error {
-	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, conversationID, userID)
+	_, err := s.requireMember(ctx, userID, conversationID)
 	if err != nil {
 		return err
-	}
-	if member == nil || !member.IsActive {
-		return errors.New("bạn không thuộc cuộc trò chuyện này")
 	}
 
 	var muteUntil sql.NullTime
@@ -299,6 +293,9 @@ func (s *ConversationService) MuteConversation(
 		t, err := time.Parse(time.RFC3339, *req.MuteUntil)
 		if err != nil {
 			return errors.New("mute_until phải theo định dạng RFC3339")
+		}
+		if t.Before(time.Now()) {
+			return errors.New("mute_until phải lớn hơn thời điểm hiện tại")
 		}
 		muteUntil = sql.NullTime{Time: t, Valid: true}
 	}
@@ -345,4 +342,41 @@ func nullInt64ToPtr(v sql.NullInt64) *int64 {
 	}
 	x := v.Int64
 	return &x
+}
+func (s *ConversationService) requireMember(
+	ctx context.Context,
+	userID, conversationID int64,
+) (*models.ConversationMember, error) {
+
+	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, conversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if member == nil || !member.IsActive {
+		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
+	}
+
+	return member, nil
+}
+func (s *ConversationService) PinConversation(
+	ctx context.Context,
+	conversationID, userID int64,
+	isPinned bool,
+) error {
+	return s.conversationMemberRepo.UpdatePinned(ctx, conversationID, userID, isPinned)
+}
+
+func (s *ConversationService) ArchiveConversation(
+	ctx context.Context,
+	conversationID, userID int64,
+	isArchived bool,
+) error {
+	return s.conversationMemberRepo.UpdateArchived(ctx, conversationID, userID, isArchived)
+}
+
+func (s *ConversationService) GetUnreadCount(
+	ctx context.Context,
+	userID int64,
+) (int64, error) {
+	return s.conversationMemberRepo.CountUnread(ctx, userID)
 }
