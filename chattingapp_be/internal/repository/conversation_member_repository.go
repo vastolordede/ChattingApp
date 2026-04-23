@@ -168,3 +168,48 @@ func (r *ConversationMemberRepository) UpdateMuteUntil(ctx context.Context, conv
 	_, err := r.db.ExecContext(ctx, query, muteUntil, time.Now(), conversationID, userID)
 	return err
 }
+func (r *ConversationMemberRepository) UpdatePinned(
+	ctx context.Context,
+	conversationID, userID int64,
+	isPinned bool,
+) error {
+	query := `
+		UPDATE conversation_members
+		SET is_pinned = $1,
+			updated_at = $2
+		WHERE conversation_id = $3 AND user_id = $4
+	`
+	_, err := r.db.ExecContext(ctx, query, isPinned, time.Now(), conversationID, userID)
+	return err
+}
+
+func (r *ConversationMemberRepository) UpdateArchived(
+	ctx context.Context,
+	conversationID, userID int64,
+	isArchived bool,
+) error {
+	query := `
+		UPDATE conversation_members
+		SET is_archived = $1,
+			updated_at = $2
+		WHERE conversation_id = $3 AND user_id = $4
+	`
+	_, err := r.db.ExecContext(ctx, query, isArchived, time.Now(), conversationID, userID)
+	return err
+}
+func (r *ConversationMemberRepository) CountUnread(
+	ctx context.Context,
+	userID int64,
+) (int64, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM conversation_members cm
+		JOIN conversations c ON c.id = cm.conversation_id
+		WHERE cm.user_id = $1
+		  AND c.last_message_id IS NOT NULL
+		  AND (cm.last_read_message_id IS NULL OR cm.last_read_message_id < c.last_message_id)
+	`
+	var count int64
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(&count)
+	return count, err
+}
