@@ -1803,6 +1803,133 @@ const docTemplate = `{
                 }
             }
         },
+        "/messages/cursor": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy message cũ hơn before_id trong một conversation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Lấy tin nhắn bằng cursor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Message ID làm cursor",
+                        "name": "before_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Số phần tử mỗi lần lấy",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.MessageListResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tìm kiếm message theo conversation_id và từ khóa q",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Tìm kiếm tin nhắn",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Conversation ID",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Từ khóa tìm kiếm",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Trang hiện tại",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Số phần tử mỗi trang",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.MessageListResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/messages/{id}": {
             "delete": {
                 "security": [
@@ -1892,6 +2019,256 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.EditMessageRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.MessageResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/{id}/forward": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Forward một message sang conversation khác",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Forward tin nhắn",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Source Message ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin forward",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ForwardMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.MessageResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/{id}/reactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ reaction của một message",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Lấy danh sách reaction của tin nhắn",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Message ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.MessageReactionListResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Thêm hoặc cập nhật reaction của user hiện tại cho message",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Reaction tin nhắn",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Message ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin reaction",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ReactMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.MessageReactionResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xóa reaction của user hiện tại khỏi message",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Xóa reaction của tôi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Message ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.SuccessOnlyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/{id}/recall": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chỉ sender được thu hồi message. Message sau khi recall sẽ bị ẩn content.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Thu hồi tin nhắn",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Message ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2110,6 +2487,56 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateMessageAttachmentRequest": {
+            "type": "object",
+            "required": [
+                "attachment_type",
+                "file_name",
+                "file_size",
+                "file_url",
+                "message_id",
+                "mime_type"
+            ],
+            "properties": {
+                "attachment_type": {
+                    "description": "image/video/file/audio/link",
+                    "type": "string"
+                },
+                "checksum": {
+                    "type": "string"
+                },
+                "duration_seconds": {
+                    "type": "integer"
+                },
+                "encryption_key_hint": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "file_size": {
+                    "type": "integer"
+                },
+                "file_url": {
+                    "type": "string"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "message_id": {
+                    "type": "integer"
+                },
+                "mime_type": {
+                    "type": "string"
+                },
+                "thumbnail_url": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.DeleteMessageRequest": {
             "type": "object",
             "properties": {
@@ -2138,6 +2565,23 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "maxLength": 100
+                }
+            }
+        },
+        "dto.ForwardMessageRequest": {
+            "type": "object",
+            "required": [
+                "target_conversation_id"
+            ],
+            "properties": {
+                "client_message_id": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "target_conversation_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -2333,6 +2777,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MessageReactionResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "message_id": {
+                    "type": "integer"
+                },
+                "reaction_type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.MessageResponse": {
             "type": "object",
             "properties": {
@@ -2372,7 +2839,13 @@ const docTemplate = `{
                 "is_edited": {
                     "type": "boolean"
                 },
+                "is_recalled": {
+                    "type": "boolean"
+                },
                 "message_type": {
+                    "type": "string"
+                },
+                "recalled_at": {
                     "type": "string"
                 },
                 "reply_to_message_id": {
@@ -2428,6 +2901,18 @@ const docTemplate = `{
             "properties": {
                 "is_pinned": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.ReactMessageRequest": {
+            "type": "object",
+            "required": [
+                "reaction_type"
+            ],
+            "properties": {
+                "reaction_type": {
+                    "description": "like, love, haha, wow, sad, angry...",
+                    "type": "string"
                 }
             }
         },
@@ -2557,6 +3042,12 @@ const docTemplate = `{
                 "message_type"
             ],
             "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CreateMessageAttachmentRequest"
+                    }
+                },
                 "client_message_id": {
                     "type": "string"
                 },
@@ -2804,6 +3295,41 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "lấy danh sách tin nhắn thành công"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "swaggerdocs.MessageReactionListResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MessageReactionResponse"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "lấy reaction thành công"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "swaggerdocs.MessageReactionResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.MessageReactionResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "reaction tin nhắn thành công"
                 },
                 "success": {
                     "type": "boolean",

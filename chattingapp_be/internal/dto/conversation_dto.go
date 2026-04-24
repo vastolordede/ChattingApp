@@ -58,3 +58,6 @@ type ConversationMemberSummary struct {
 type MarkConversationReadRequest struct {
 	LastReadMessageID int64 `json:"last_read_message_id" validate:"required"`
 }
+type TypingRequest struct {
+	IsTyping bool `json:"is_typing"`
+}

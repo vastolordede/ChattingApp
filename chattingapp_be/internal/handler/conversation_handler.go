@@ -388,3 +388,47 @@ func (h *ConversationHandler) GetUnreadCount(w http.ResponseWriter, r *http.Requ
 		},
 	})
 }
+func (h *ConversationHandler) SendTypingEvent(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	conversationIDStr := r.PathValue("id")
+	conversationID, err := strconv.ParseInt(conversationIDStr, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "conversation id không hợp lệ",
+		})
+		return
+	}
+
+	var req dto.TypingRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	if err := h.conversationService.SendTypingEvent(r.Context(), userID, conversationID, req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "gửi typing event thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "gửi typing event thành công",
+	})
+}

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"chattingapp_be/internal/realtime"
 )
 
 type MessageService struct {
@@ -18,6 +19,7 @@ type MessageService struct {
 	conversationRepo       *repository.ConversationRepository
 	conversationMemberRepo *repository.ConversationMemberRepository
 	userRepo               *repository.UserRepository
+	realtimeHub 			*realtime.Hub
 }
 
 func NewMessageService(
@@ -27,6 +29,7 @@ func NewMessageService(
 	conversationRepo *repository.ConversationRepository,
 	conversationMemberRepo *repository.ConversationMemberRepository,
 	userRepo *repository.UserRepository,
+	realtimeHub *realtime.Hub,
 ) *MessageService {
 	return &MessageService{
 		db:                     db,
@@ -35,6 +38,7 @@ func NewMessageService(
 		conversationRepo:       conversationRepo,
 		conversationMemberRepo: conversationMemberRepo,
 		userRepo:               userRepo,
+		realtimeHub: realtimeHub,
 	}
 }
 
@@ -47,6 +51,7 @@ func (s *MessageService) SendMessage(
 	if err != nil {
 		return nil, err
 	}
+	
 	if member == nil || !member.IsActive {
 		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
 	}
@@ -119,16 +124,101 @@ func (s *MessageService) SendMessage(
 	if err != nil {
 		return nil, err
 	}
+for _, attachmentReq := range req.Attachments {
+	attachmentType := strings.TrimSpace(attachmentReq.AttachmentType)
+	fileName := strings.TrimSpace(attachmentReq.FileName)
+	mimeType := strings.TrimSpace(attachmentReq.MimeType)
+	fileURL := strings.TrimSpace(attachmentReq.FileURL)
 
+	if attachmentType == "" {
+		return nil, errors.New("attachment_type không được để trống")
+	}
+	if fileName == "" {
+		return nil, errors.New("file_name không được để trống")
+	}
+	if mimeType == "" {
+		return nil, errors.New("mime_type không được để trống")
+	}
+	if attachmentReq.FileSize <= 0 {
+		return nil, errors.New("file_size không hợp lệ")
+	}
+	if fileURL == "" {
+		return nil, errors.New("file_url không được để trống")
+	}
+
+	attachment := &models.MessageAttachment{
+		MessageID:      messageID,
+		AttachmentType: attachmentType,
+		FileName:       fileName,
+		MimeType:       mimeType,
+		FileSize:       attachmentReq.FileSize,
+		FileURL:        fileURL,
+		CreatedAt:      now,
+	}
+
+	if attachmentReq.ThumbnailURL != nil && strings.TrimSpace(*attachmentReq.ThumbnailURL) != "" {
+		attachment.ThumbnailURL = sql.NullString{
+			String: strings.TrimSpace(*attachmentReq.ThumbnailURL),
+			Valid:  true,
+		}
+	}
+	if attachmentReq.Width != nil {
+		attachment.Width = sql.NullInt64{
+			Int64: int64(*attachmentReq.Width),
+			Valid: true,
+		}
+	}
+	if attachmentReq.Height != nil {
+		attachment.Height = sql.NullInt64{
+			Int64: int64(*attachmentReq.Height),
+			Valid: true,
+		}
+	}
+	if attachmentReq.DurationSeconds != nil {
+		attachment.DurationSeconds = sql.NullInt64{
+			Int64: int64(*attachmentReq.DurationSeconds),
+			Valid: true,
+		}
+	}
+	if attachmentReq.Checksum != nil && strings.TrimSpace(*attachmentReq.Checksum) != "" {
+		attachment.Checksum = sql.NullString{
+			String: strings.TrimSpace(*attachmentReq.Checksum),
+			Valid:  true,
+		}
+	}
+	if attachmentReq.EncryptionKeyHint != nil && strings.TrimSpace(*attachmentReq.EncryptionKeyHint) != "" {
+		attachment.EncryptionKeyHint = sql.NullString{
+			String: strings.TrimSpace(*attachmentReq.EncryptionKeyHint),
+			Valid:  true,
+		}
+	}
+
+	if _, err := s.messageAttachmentRepo.CreateTx(ctx, tx, attachment); err != nil {
+		return nil, err
+	}
+}
 	if err := s.conversationRepo.UpdateLastMessageTx(ctx, tx, req.ConversationID, messageID, now); err != nil {
 		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
+	return nil, err
+}
 
-	return s.buildMessageResponse(ctx, messageID)
+resp, err := s.buildMessageResponse(ctx, messageID)
+if err != nil {
+	return nil, err
+}
+
+s.broadcastMessageEvent(ctx, req.ConversationID, realtime.Event{
+	Type:           "message_created",
+	ConversationID: req.ConversationID,
+	UserID:         userID,
+	MessageID:      messageID,
+	Payload:        resp,
+})
+
+return resp, nil
 }
 
 func (s *MessageService) EditMessage(
@@ -183,6 +273,41 @@ func (s *MessageService) DeleteMessage(
 	}
 
 	return s.messageRepo.HardDelete(ctx, messageID)
+}
+func (s *MessageService) RecallMessage(
+	ctx context.Context,
+	userID, messageID int64,
+) (*dto.MessageResponse, error) {
+	msg, err := s.messageRepo.GetByID(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+	if msg == nil {
+		return nil, errors.New("không tìm thấy message")
+	}
+	if msg.SenderUserID != userID {
+		return nil, errors.New("bạn không có quyền thu hồi tin nhắn này")
+	}
+	if msg.IsDeleted {
+		return nil, errors.New("không thể thu hồi tin nhắn đã xóa")
+	}
+	if msg.IsRecalled {
+		return nil, errors.New("tin nhắn đã được thu hồi")
+	}
+
+	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, msg.ConversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if member == nil || !member.IsActive {
+		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
+	}
+
+	if err := s.messageRepo.Recall(ctx, messageID); err != nil {
+		return nil, err
+	}
+
+	return s.buildMessageResponse(ctx, messageID)
 }
 
 func (s *MessageService) ListMessages(
@@ -298,6 +423,8 @@ func (s *MessageService) buildMessageResponseFromModel(ctx context.Context, m *m
 		EditedAt:               nullTimeToPtrString(m.EditedAt),
 		IsDeleted:              m.IsDeleted,
 		DeletedAt:              nullTimeToPtrString(m.DeletedAt),
+		IsRecalled: m.IsRecalled,
+		RecalledAt: nullTimeToPtrString(m.RecalledAt),
 		ClientMessageID:        nullStringToPtr(m.ClientMessageID),
 		SentAt:                 m.SentAt.Format(time.RFC3339),
 		CreatedAt:              m.CreatedAt.Format(time.RFC3339),
@@ -316,4 +443,317 @@ func nullInt64ToIntPtr(v sql.NullInt64) *int {
 	}
 	x := int(v.Int64)
 	return &x
+}
+func (s *MessageService) SearchMessages(
+	ctx context.Context,
+	userID, conversationID int64,
+	keyword string,
+	page, limit int,
+) ([]dto.MessageResponse, error) {
+	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, conversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if member == nil || !member.IsActive {
+		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
+	}
+
+	keyword = strings.TrimSpace(keyword)
+	if keyword == "" {
+		return nil, errors.New("từ khóa tìm kiếm không được để trống")
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	offset := (page - 1) * limit
+
+	messages, err := s.messageRepo.SearchByConversationID(ctx, conversationID, keyword, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]dto.MessageResponse, 0, len(messages))
+	for _, m := range messages {
+		item, err := s.buildMessageResponseFromModel(ctx, &m)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *item)
+	}
+
+	return result, nil
+}
+
+func (s *MessageService) ListMessagesBeforeID(
+	ctx context.Context,
+	userID, conversationID, beforeID int64,
+	limit int,
+) ([]dto.MessageResponse, error) {
+	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, conversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if member == nil || !member.IsActive {
+		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
+	}
+
+	if beforeID <= 0 {
+		return nil, errors.New("before_id không hợp lệ")
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	messages, err := s.messageRepo.ListBeforeIDByConversationID(ctx, conversationID, beforeID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]dto.MessageResponse, 0, len(messages))
+	for _, m := range messages {
+		item, err := s.buildMessageResponseFromModel(ctx, &m)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *item)
+	}
+
+	return result, nil
+}
+
+func (s *MessageService) ForwardMessage(
+	ctx context.Context,
+	userID, sourceMessageID int64,
+	req dto.ForwardMessageRequest,
+) (*dto.MessageResponse, error) {
+	sourceMsg, err := s.messageRepo.GetByID(ctx, sourceMessageID)
+	if err != nil {
+		return nil, err
+	}
+	if sourceMsg == nil {
+		return nil, errors.New("không tìm thấy message gốc")
+	}
+	if sourceMsg.IsDeleted {
+		return nil, errors.New("không thể forward tin nhắn đã xóa")
+	}
+
+	sourceMember, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, sourceMsg.ConversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if sourceMember == nil || !sourceMember.IsActive {
+		return nil, errors.New("bạn không có quyền xem message gốc")
+	}
+
+	targetMember, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, req.TargetConversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if targetMember == nil || !targetMember.IsActive {
+		return nil, errors.New("bạn không thuộc conversation đích")
+	}
+
+	targetConversation, err := s.conversationRepo.GetByID(ctx, req.TargetConversationID)
+	if err != nil {
+		return nil, err
+	}
+	if targetConversation == nil {
+		return nil, errors.New("không tìm thấy conversation đích")
+	}
+	if targetConversation.Status != "active" {
+		return nil, errors.New("conversation đích không hoạt động")
+	}
+
+	now := time.Now()
+
+	content := sourceMsg.Content
+	if req.Content != nil && strings.TrimSpace(*req.Content) != "" {
+		content = sql.NullString{
+			String: strings.TrimSpace(*req.Content),
+			Valid:  true,
+		}
+	}
+
+	msg := &models.Message{
+		ConversationID:         req.TargetConversationID,
+		SenderUserID:           userID,
+		MessageType:            sourceMsg.MessageType,
+		Content:                content,
+		ForwardedFromMessageID: sql.NullInt64{Int64: sourceMsg.ID, Valid: true},
+		Status:                 "sent",
+		IsEdited:               false,
+		IsDeleted:              false,
+		SentAt:                 now,
+		CreatedAt:              now,
+		UpdatedAt:              now,
+	}
+
+	if req.ClientMessageID != nil && strings.TrimSpace(*req.ClientMessageID) != "" {
+		msg.ClientMessageID = sql.NullString{
+			String: strings.TrimSpace(*req.ClientMessageID),
+			Valid:  true,
+		}
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	newMessageID, err := s.messageRepo.CreateTx(ctx, tx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.conversationRepo.UpdateLastMessageTx(ctx, tx, req.TargetConversationID, newMessageID, now); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return s.buildMessageResponse(ctx, newMessageID)
+}
+
+func (s *MessageService) ReactMessage(
+	ctx context.Context,
+	userID, messageID int64,
+	req dto.ReactMessageRequest,
+) (*dto.MessageReactionResponse, error) {
+	msg, err := s.messageRepo.GetByID(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+	if msg == nil {
+		return nil, errors.New("không tìm thấy message")
+	}
+	if msg.IsDeleted {
+		return nil, errors.New("không thể reaction tin nhắn đã xóa")
+	}
+
+	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, msg.ConversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if member == nil || !member.IsActive {
+		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
+	}
+
+	reactionType := strings.TrimSpace(req.ReactionType)
+	if reactionType == "" {
+		return nil, errors.New("reaction_type không được để trống")
+	}
+
+	reaction, err := s.messageRepo.UpsertReaction(ctx, messageID, userID, reactionType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.MessageReactionResponse{
+		ID:           reaction.ID,
+		MessageID:    reaction.MessageID,
+		UserID:       reaction.UserID,
+		ReactionType: reaction.ReactionType,
+		CreatedAt:    reaction.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:    reaction.UpdatedAt.Format(time.RFC3339),
+	}, nil
+}
+
+func (s *MessageService) DeleteReaction(
+	ctx context.Context,
+	userID, messageID int64,
+) error {
+	msg, err := s.messageRepo.GetByID(ctx, messageID)
+	if err != nil {
+		return err
+	}
+	if msg == nil {
+		return errors.New("không tìm thấy message")
+	}
+
+	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, msg.ConversationID, userID)
+	if err != nil {
+		return err
+	}
+	if member == nil || !member.IsActive {
+		return errors.New("bạn không thuộc cuộc trò chuyện này")
+	}
+
+	return s.messageRepo.DeleteReaction(ctx, messageID, userID)
+}
+
+func (s *MessageService) ListReactions(
+	ctx context.Context,
+	userID, messageID int64,
+) ([]dto.MessageReactionResponse, error) {
+	msg, err := s.messageRepo.GetByID(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+	if msg == nil {
+		return nil, errors.New("không tìm thấy message")
+	}
+
+	member, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, msg.ConversationID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if member == nil || !member.IsActive {
+		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
+	}
+
+	reactions, err := s.messageRepo.ListReactionsByMessageID(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]dto.MessageReactionResponse, 0, len(reactions))
+	for _, reaction := range reactions {
+		result = append(result, dto.MessageReactionResponse{
+			ID:           reaction.ID,
+			MessageID:    reaction.MessageID,
+			UserID:       reaction.UserID,
+			ReactionType: reaction.ReactionType,
+			CreatedAt:    reaction.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:    reaction.UpdatedAt.Format(time.RFC3339),
+		})
+	}
+
+	return result, nil
+}
+func (s *MessageService) broadcastMessageEvent(
+	ctx context.Context,
+	conversationID int64,
+	event realtime.Event,
+) {
+	if s.realtimeHub == nil {
+		return
+	}
+
+	members, err := s.conversationMemberRepo.ListByConversationID(ctx, conversationID)
+	if err != nil {
+		return
+	}
+
+	userIDs := make([]int64, 0, len(members))
+	for _, m := range members {
+		if m.IsActive {
+			userIDs = append(userIDs, m.UserID)
+		}
+	}
+
+	s.realtimeHub.BroadcastToUsers(userIDs, event)
 }

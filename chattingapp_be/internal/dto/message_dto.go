@@ -6,6 +6,8 @@ type SendMessageRequest struct {
 	Content          *string `json:"content,omitempty"`
 	ReplyToMessageID *int64  `json:"reply_to_message_id,omitempty"`
 	ClientMessageID  *string `json:"client_message_id,omitempty"`
+
+	Attachments []CreateMessageAttachmentRequest `json:"attachments,omitempty"`
 }
 
 type EditMessageRequest struct {
@@ -53,6 +55,8 @@ type MessageResponse struct {
 	EditedAt               *string                     `json:"edited_at,omitempty"`
 	IsDeleted              bool                        `json:"is_deleted"`
 	DeletedAt              *string                     `json:"deleted_at,omitempty"`
+	IsRecalled bool    `json:"is_recalled"`
+	RecalledAt *string `json:"recalled_at,omitempty"`
 	ClientMessageID        *string                     `json:"client_message_id,omitempty"`
 	SentAt                 string                      `json:"sent_at"`
 	CreatedAt              string                      `json:"created_at"`
@@ -60,4 +64,22 @@ type MessageResponse struct {
 	Sender                 *MessageSenderInfo          `json:"sender,omitempty"`
 	ReplyToMessagePreview  *MessagePreviewResponse     `json:"reply_to_message_preview,omitempty"`
 	Attachments            []MessageAttachmentResponse `json:"attachments,omitempty"`
+}
+type ForwardMessageRequest struct {
+	TargetConversationID int64   `json:"target_conversation_id" validate:"required"`
+	Content              *string `json:"content,omitempty"`
+	ClientMessageID      *string `json:"client_message_id,omitempty"`
+}
+
+type ReactMessageRequest struct {
+	ReactionType string `json:"reaction_type" validate:"required"` // like, love, haha, wow, sad, angry...
+}
+
+type MessageReactionResponse struct {
+	ID           int64  `json:"id"`
+	MessageID    int64  `json:"message_id"`
+	UserID       int64  `json:"user_id"`
+	ReactionType string `json:"reaction_type"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
 }

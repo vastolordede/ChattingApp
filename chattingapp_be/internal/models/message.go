@@ -18,6 +18,8 @@ type Message struct {
 	EditedAt               sql.NullTime
 	IsDeleted              bool
 	DeletedAt              sql.NullTime
+	IsRecalled bool
+	RecalledAt sql.NullTime
 	ClientMessageID        sql.NullString
 	SentAt                 time.Time
 	CreatedAt              time.Time
