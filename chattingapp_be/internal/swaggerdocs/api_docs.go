@@ -104,6 +104,17 @@ type PinConversationRequest struct {
 type ArchiveConversationRequest struct {
 	IsArchived bool `json:"is_archived"`
 }
+type MessageReactionResponseEnvelope struct {
+	Success bool                        `json:"success" example:"true"`
+	Message string                      `json:"message" example:"reaction tin nhắn thành công"`
+	Data    dto.MessageReactionResponse `json:"data"`
+}
+
+type MessageReactionListResponseEnvelope struct {
+	Success bool                          `json:"success" example:"true"`
+	Message string                        `json:"message" example:"lấy reaction thành công"`
+	Data    []dto.MessageReactionResponse `json:"data"`
+}
 // ============================================================
 // DOC ENDPOINTS
 // Chỉ là function rỗng để gắn annotation.
@@ -643,3 +654,101 @@ func ArchiveConversationDoc() {}
 // @Failure 500 {object} ErrorResponse
 // @Router /conversations/unread-count [get]
 func GetUnreadCountDoc() {}
+// SearchMessagesDoc godoc
+// @Summary Tìm kiếm tin nhắn
+// @Description Tìm kiếm message theo conversation_id và từ khóa q
+// @Tags Messages
+// @Security BearerAuth
+// @Produce json
+// @Param conversation_id query int true "Conversation ID"
+// @Param q query string true "Từ khóa tìm kiếm"
+// @Param page query int false "Trang hiện tại" default(1)
+// @Param limit query int false "Số phần tử mỗi trang" default(20)
+// @Success 200 {object} MessageListResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/search [get]
+func SearchMessagesDoc() {}
+
+// ListMessagesCursorDoc godoc
+// @Summary Lấy tin nhắn bằng cursor
+// @Description Lấy message cũ hơn before_id trong một conversation
+// @Tags Messages
+// @Security BearerAuth
+// @Produce json
+// @Param conversation_id query int true "Conversation ID"
+// @Param before_id query int true "Message ID làm cursor"
+// @Param limit query int false "Số phần tử mỗi lần lấy" default(20)
+// @Success 200 {object} MessageListResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/cursor [get]
+func ListMessagesCursorDoc() {}
+
+// ForwardMessageDoc godoc
+// @Summary Forward tin nhắn
+// @Description Forward một message sang conversation khác
+// @Tags Messages
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "Source Message ID"
+// @Param request body dto.ForwardMessageRequest true "Thông tin forward"
+// @Success 201 {object} MessageResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/{id}/forward [post]
+func ForwardMessageDoc() {}
+
+// ReactMessageDoc godoc
+// @Summary Reaction tin nhắn
+// @Description Thêm hoặc cập nhật reaction của user hiện tại cho message
+// @Tags Messages
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "Message ID"
+// @Param request body dto.ReactMessageRequest true "Thông tin reaction"
+// @Success 200 {object} MessageReactionResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/{id}/reactions [post]
+func ReactMessageDoc() {}
+
+// ListReactionsDoc godoc
+// @Summary Lấy danh sách reaction của tin nhắn
+// @Description Lấy toàn bộ reaction của một message
+// @Tags Messages
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "Message ID"
+// @Success 200 {object} MessageReactionListResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/{id}/reactions [get]
+func ListReactionsDoc() {}
+
+// DeleteReactionDoc godoc
+// @Summary Xóa reaction của tôi
+// @Description Xóa reaction của user hiện tại khỏi message
+// @Tags Messages
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "Message ID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/{id}/reactions [delete]
+func DeleteReactionDoc() {}
+// RecallMessageDoc godoc
+// @Summary Thu hồi tin nhắn
+// @Description Chỉ sender được thu hồi message. Message sau khi recall sẽ bị ẩn content.
+// @Tags Messages
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "Message ID"
+// @Success 200 {object} MessageResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/{id}/recall [patch]
+func RecallMessageDoc() {}

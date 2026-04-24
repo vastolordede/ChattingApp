@@ -3,6 +3,7 @@ package routes
 import (
 	"chattingapp_be/internal/handler"
 	"chattingapp_be/internal/middleware"
+	"chattingapp_be/internal/realtime"
 	"net/http"
 )
 
@@ -12,6 +13,7 @@ type Handlers struct {
 	Conversation *handler.ConversationHandler
 	Message      *handler.MessageHandler
 	UserDevice   *handler.UserDeviceHandler
+	RealtimeHub *realtime.Hub
 }
 
 func RegisterRoutes(
@@ -24,6 +26,15 @@ func RegisterRoutes(
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"message":"pong"}`))
 	})
+	mux.HandleFunc("GET /ws", func(w http.ResponseWriter, r *http.Request) {
+	userID, err := realtime.ParseUserIDFromQuery(r)
+	if err != nil || userID <= 0 {
+		http.Error(w, "missing or invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	realtime.ServeWS(handlers.RealtimeHub, w, r, userID)
+})
 
 	// public
 	mux.HandleFunc("POST /auth/register", handlers.Auth.Register)
@@ -53,6 +64,7 @@ func RegisterRoutes(
 	mux.Handle("GET /conversations", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.ListMyConversations)))
 	mux.Handle("GET /conversations/{id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.GetConversationDetail)))
 	mux.Handle("PATCH /conversations/{id}/read", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.MarkConversationRead)))
+	mux.Handle("POST /conversations/{id}/typing", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.SendTypingEvent)))
 	mux.Handle("PATCH /conversations/{id}/nickname", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.UpdateMyNickname)))
 	mux.Handle("PATCH /conversations/{id}/mute", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.MuteConversation)))
 	mux.Handle("PATCH /conversations/{id}/pin", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.PinConversation)))
@@ -60,9 +72,16 @@ func RegisterRoutes(
 	mux.Handle("GET /conversations/unread-count", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.GetUnreadCount)))
 
 	mux.Handle("POST /messages", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.SendMessage)))
+	mux.Handle("GET /messages", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListMessages)))
+	mux.Handle("GET /messages/search", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.SearchMessages)))
+	mux.Handle("GET /messages/cursor", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListMessagesBeforeID)))
+	mux.Handle("POST /messages/{id}/forward", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ForwardMessage)))
+	mux.Handle("POST /messages/{id}/reactions", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ReactMessage)))
+	mux.Handle("GET /messages/{id}/reactions", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListReactions)))
+	mux.Handle("DELETE /messages/{id}/reactions", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.DeleteReaction)))
 	mux.Handle("PATCH /messages/{id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.EditMessage)))
 	mux.Handle("DELETE /messages/{id}", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.DeleteMessage)))
-	mux.Handle("GET /messages", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListMessages)))
+	mux.Handle("PATCH /messages/{id}/recall", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.RecallMessage)))
 
 	mux.Handle("POST /devices/register", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.RegisterDevice)))
 	mux.Handle("GET /devices", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.ListDevices)))

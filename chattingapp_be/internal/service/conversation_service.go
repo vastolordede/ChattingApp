@@ -9,6 +9,7 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"chattingapp_be/internal/realtime"
 )
 
 type ConversationService struct {
@@ -17,6 +18,7 @@ type ConversationService struct {
 	conversationMemberRepo *repository.ConversationMemberRepository
 	userRepo               *repository.UserRepository
 	messageRepo            *repository.MessageRepository
+	realtimeHub *realtime.Hub
 }
 
 func NewConversationService(
@@ -25,6 +27,7 @@ func NewConversationService(
 	conversationMemberRepo *repository.ConversationMemberRepository,
 	userRepo *repository.UserRepository,
 	messageRepo *repository.MessageRepository,
+	realtimeHub *realtime.Hub,
 ) *ConversationService {
 	return &ConversationService{
 		db:                     db,
@@ -32,6 +35,7 @@ func NewConversationService(
 		conversationMemberRepo: conversationMemberRepo,
 		userRepo:               userRepo,
 		messageRepo:            messageRepo,
+		realtimeHub: realtimeHub,
 	}
 }
 
@@ -251,7 +255,18 @@ func (s *ConversationService) MarkConversationRead(
 		return errors.New("message không thuộc cuộc trò chuyện này")
 	}
 
-	return s.conversationMemberRepo.UpdateLastRead(ctx, conversationID, userID, req.LastReadMessageID)
+	if err := s.conversationMemberRepo.UpdateLastRead(ctx, conversationID, userID, req.LastReadMessageID); err != nil {
+	return err
+}
+
+s.broadcastConversationEvent(ctx, conversationID, realtime.Event{
+	Type:           "message_read",
+	ConversationID: conversationID,
+	UserID:         userID,
+	MessageID:      req.LastReadMessageID,
+})
+
+return nil
 }
 
 func (s *ConversationService) UpdateMyNickname(
@@ -379,4 +394,46 @@ func (s *ConversationService) GetUnreadCount(
 	userID int64,
 ) (int64, error) {
 	return s.conversationMemberRepo.CountUnread(ctx, userID)
+}
+func (s *ConversationService) broadcastConversationEvent(
+	ctx context.Context,
+	conversationID int64,
+	event realtime.Event,
+) {
+	if s.realtimeHub == nil {
+		return
+	}
+
+	members, err := s.conversationMemberRepo.ListByConversationID(ctx, conversationID)
+	if err != nil {
+		return
+	}
+
+	userIDs := make([]int64, 0, len(members))
+	for _, m := range members {
+		if m.IsActive {
+			userIDs = append(userIDs, m.UserID)
+		}
+	}
+
+	s.realtimeHub.BroadcastToUsers(userIDs, event)
+}
+func (s *ConversationService) SendTypingEvent(
+	ctx context.Context,
+	userID, conversationID int64,
+	req dto.TypingRequest,
+) error {
+	_, err := s.requireMember(ctx, userID, conversationID)
+	if err != nil {
+		return err
+	}
+
+	s.broadcastConversationEvent(ctx, conversationID, realtime.Event{
+		Type:           "typing",
+		ConversationID: conversationID,
+		UserID:         userID,
+		IsTyping:       &req.IsTyping,
+	})
+
+	return nil
 }

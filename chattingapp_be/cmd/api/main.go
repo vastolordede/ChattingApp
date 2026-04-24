@@ -25,6 +25,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
+	"chattingapp_be/internal/realtime"
 )
 
 func main() {
@@ -55,7 +56,7 @@ func main() {
 	userDeviceRepo := repository.NewUserDeviceRepository(db)
 	userRefreshTokenRepo := repository.NewUserRefreshTokenRepository(db)
 	passwordResetTokenRepo := repository.NewPasswordResetTokenRepository(db)
-	
+	realtimeHub := realtime.NewHub()
 
 	authService := service.NewAuthService(
 		userRepo,
@@ -79,6 +80,7 @@ func main() {
 		conversationMemberRepo,
 		userRepo,
 		messageRepo,
+		realtimeHub,
 	)
 
 	messageService := service.NewMessageService(
@@ -88,6 +90,7 @@ func main() {
 		conversationRepo,
 		conversationMemberRepo,
 		userRepo,
+		realtimeHub,
 	)
 
 	userDeviceService := service.NewUserDeviceService(userDeviceRepo, userRefreshTokenRepo)
@@ -109,6 +112,7 @@ func main() {
 			Conversation: conversationHandler,
 			Message:      messageHandler,
 			UserDevice:   userDeviceHandler,
+			RealtimeHub: realtimeHub,
 		},
 		authMiddleware,
 	)
