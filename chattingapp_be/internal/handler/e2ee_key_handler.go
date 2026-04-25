@@ -4,10 +4,8 @@ import (
 	"chattingapp_be/internal/dto"
 	"chattingapp_be/internal/service"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type E2EEKeyHandler struct {
@@ -142,12 +140,12 @@ func (h *E2EEKeyHandler) UploadOneTimePreKeys(w http.ResponseWriter, r *http.Req
 }
 
 func (h *E2EEKeyHandler) GetUserKeyBundle(w http.ResponseWriter, r *http.Request) {
-	targetUserID, err := parseUserIDFromKeyBundlePath(r.URL.Path)
-	if err != nil {
+	targetUserID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
+	if err != nil || targetUserID <= 0 {
 		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
 			Success: false,
-			Message: "invalid request path",
-			Error:   err.Error(),
+			Message: "invalid user id",
+			Error:   "user_id must be a positive integer",
 		})
 		return
 	}
@@ -169,23 +167,3 @@ func (h *E2EEKeyHandler) GetUserKeyBundle(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func parseUserIDFromKeyBundlePath(path string) (int64, error) {
-	// Expected path: /e2ee/users/{user_id}/key-bundle
-	path = strings.Trim(path, "/")
-	parts := strings.Split(path, "/")
-
-	if len(parts) != 4 {
-		return 0, errors.New("invalid key bundle path")
-	}
-
-	if parts[0] != "e2ee" || parts[1] != "users" || parts[3] != "key-bundle" {
-		return 0, errors.New("invalid key bundle path")
-	}
-
-	id, err := strconv.ParseInt(parts[2], 10, 64)
-	if err != nil || id <= 0 {
-		return 0, errors.New("invalid user id")
-	}
-
-	return id, nil
-}
