@@ -1209,6 +1209,205 @@
                 }
             }
         },
+        "/e2ee/keys/identity": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload hoặc thay thế active identity public key cho device hiện tại. Device phải thuộc user đang đăng nhập.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "E2EE"
+                ],
+                "summary": "Upload identity key",
+                "parameters": [
+                    {
+                        "description": "Identity key payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UploadIdentityKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.E2EEKeyUploadResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/e2ee/keys/one-time-prekeys": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload danh sách one-time prekeys cho device hiện tại. Các prekey này sẽ được consume một lần khi user khác lấy key bundle.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "E2EE"
+                ],
+                "summary": "Upload one-time prekeys",
+                "parameters": [
+                    {
+                        "description": "One-time prekeys payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UploadOneTimePreKeysRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.E2EEKeyUploadResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/e2ee/keys/signed-prekey": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload hoặc thay thế active signed prekey cho device hiện tại. Signed prekey được client ký bằng identity key.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "E2EE"
+                ],
+                "summary": "Upload signed prekey",
+                "parameters": [
+                    {
+                        "description": "Signed prekey payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UploadSignedPreKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.E2EEKeyUploadResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/e2ee/users/{user_id}/key-bundle": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy identity key, signed prekey và nếu có thì consume một one-time prekey của từng active device thuộc user đích.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "E2EE"
+                ],
+                "summary": "Lấy key bundle của user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.UserKeyBundleResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/friends": {
             "get": {
                 "security": [
@@ -2541,6 +2740,43 @@
                 }
             }
         },
+        "dto.DeviceKeyBundleResponse": {
+            "type": "object",
+            "properties": {
+                "device_id": {
+                    "type": "integer"
+                },
+                "device_uuid": {
+                    "type": "string"
+                },
+                "has_one_time_prekey": {
+                    "type": "boolean"
+                },
+                "identity_key": {
+                    "$ref": "#/definitions/dto.IdentityKeyResponse"
+                },
+                "one_time_prekey": {
+                    "$ref": "#/definitions/dto.OneTimePreKeyResponse"
+                },
+                "signed_prekey": {
+                    "$ref": "#/definitions/dto.SignedPreKeyResponse"
+                }
+            }
+        },
+        "dto.E2EEKeyUploadResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.EditMessageRequest": {
             "type": "object",
             "required": [
@@ -2653,6 +2889,29 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.IdentityKeyResponse": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "integer"
+                },
+                "fingerprint": {
+                    "type": "string"
+                },
+                "key_id": {
+                    "type": "integer"
+                },
+                "public_key": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },
@@ -2892,6 +3151,29 @@
                 }
             }
         },
+        "dto.OneTimePreKeyResponse": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "integer"
+                },
+                "key_id": {
+                    "type": "integer"
+                },
+                "prekey_id": {
+                    "type": "integer"
+                },
+                "public_key": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.PinConversationRequest": {
             "type": "object",
             "properties": {
@@ -3062,6 +3344,32 @@
                 }
             }
         },
+        "dto.SignedPreKeyResponse": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "integer"
+                },
+                "key_id": {
+                    "type": "integer"
+                },
+                "prekey_id": {
+                    "type": "integer"
+                },
+                "public_key": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.UpdateConversationNicknameRequest": {
             "type": "object",
             "properties": {
@@ -3081,6 +3389,80 @@
                 },
                 "full_name": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UploadIdentityKeyRequest": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "device_uuid": {
+                    "type": "string"
+                },
+                "fingerprint": {
+                    "type": "string"
+                },
+                "public_key": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UploadOneTimePreKeyItem": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "key_id": {
+                    "type": "integer"
+                },
+                "public_key": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UploadOneTimePreKeysRequest": {
+            "type": "object",
+            "properties": {
+                "device_uuid": {
+                    "type": "string"
+                },
+                "prekeys": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UploadOneTimePreKeyItem"
+                    }
+                }
+            }
+        },
+        "dto.UploadSignedPreKeyRequest": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "device_uuid": {
+                    "type": "string"
+                },
+                "key_id": {
+                    "type": "integer"
+                },
+                "public_key": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },
@@ -3128,6 +3510,20 @@
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UserKeyBundleResponse": {
+            "type": "object",
+            "properties": {
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DeviceKeyBundleResponse"
+                    }
                 },
                 "user_id": {
                     "type": "integer"
@@ -3227,6 +3623,22 @@
                 "message": {
                     "type": "string",
                     "example": "lấy danh sách cuộc trò chuyện thành công"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "swaggerdocs.E2EEKeyUploadResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.E2EEKeyUploadResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "upload key thành công"
                 },
                 "success": {
                     "type": "boolean",
@@ -3417,6 +3829,22 @@
                 "message": {
                     "type": "string",
                     "example": "Lấy danh sách thiết bị thành công"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "swaggerdocs.UserKeyBundleResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.UserKeyBundleResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "lấy key bundle thành công"
                 },
                 "success": {
                     "type": "boolean",

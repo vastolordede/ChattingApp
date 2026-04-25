@@ -12,20 +12,21 @@ package main
 
 import (
 	_ "chattingapp_be/docs"
-	_ "chattingapp_be/internal/swaggerdocs"
 	"chattingapp_be/internal/config"
 	"chattingapp_be/internal/database"
 	"chattingapp_be/internal/handler"
 	"chattingapp_be/internal/middleware"
+	"chattingapp_be/internal/realtime"
 	"chattingapp_be/internal/repository"
 	"chattingapp_be/internal/routes"
 	"chattingapp_be/internal/service"
+	_ "chattingapp_be/internal/swaggerdocs"
 	"chattingapp_be/internal/util"
 	"fmt"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
-	"chattingapp_be/internal/realtime"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -57,6 +58,13 @@ func main() {
 	userRefreshTokenRepo := repository.NewUserRefreshTokenRepository(db)
 	passwordResetTokenRepo := repository.NewPasswordResetTokenRepository(db)
 	realtimeHub := realtime.NewHub()
+
+	deviceIdentityKeyRepo := repository.NewDeviceIdentityKeyRepository(db)
+	deviceSignedPreKeyRepo := repository.NewDeviceSignedPreKeyRepository(db)
+	deviceOneTimePreKeyRepo := repository.NewDeviceOneTimePreKeyRepository(db)
+	messageCiphertextRepo := repository.NewMessageCiphertextRepository(db)
+
+	_ = messageCiphertextRepo
 
 	authService := service.NewAuthService(
 		userRepo,
@@ -95,11 +103,20 @@ func main() {
 
 	userDeviceService := service.NewUserDeviceService(userDeviceRepo, userRefreshTokenRepo)
 
+	e2eeKeyService := service.NewE2EEKeyService(
+	userDeviceRepo,
+	deviceIdentityKeyRepo,
+	deviceSignedPreKeyRepo,
+	deviceOneTimePreKeyRepo,
+)
+
 	authHandler := handler.NewAuthHandler(authService)
 	friendHandler := handler.NewFriendHandler(friendService)
 	conversationHandler := handler.NewConversationHandler(conversationService)
 	messageHandler := handler.NewMessageHandler(messageService)
 	userDeviceHandler := handler.NewUserDeviceHandler(userDeviceService)
+
+	e2eeKeyHandler := handler.NewE2EEKeyHandler(e2eeKeyService)
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager)
 
@@ -112,6 +129,7 @@ func main() {
 			Conversation: conversationHandler,
 			Message:      messageHandler,
 			UserDevice:   userDeviceHandler,
+			E2EEKey: e2eeKeyHandler,
 			RealtimeHub: realtimeHub,
 		},
 		authMiddleware,

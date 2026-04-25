@@ -155,6 +155,30 @@ definitions:
       soft_delete:
         type: boolean
     type: object
+  dto.DeviceKeyBundleResponse:
+    properties:
+      device_id:
+        type: integer
+      device_uuid:
+        type: string
+      has_one_time_prekey:
+        type: boolean
+      identity_key:
+        $ref: '#/definitions/dto.IdentityKeyResponse'
+      one_time_prekey:
+        $ref: '#/definitions/dto.OneTimePreKeyResponse'
+      signed_prekey:
+        $ref: '#/definitions/dto.SignedPreKeyResponse'
+    type: object
+  dto.E2EEKeyUploadResponse:
+    properties:
+      count:
+        type: integer
+      id:
+        type: integer
+      message:
+        type: string
+    type: object
   dto.EditMessageRequest:
     properties:
       content:
@@ -229,6 +253,21 @@ definitions:
         type: boolean
       username:
         type: string
+    type: object
+  dto.IdentityKeyResponse:
+    properties:
+      algorithm:
+        type: string
+      device_id:
+        type: integer
+      fingerprint:
+        type: string
+      key_id:
+        type: integer
+      public_key:
+        type: string
+      version:
+        type: integer
     type: object
   dto.LoginRequest:
     properties:
@@ -385,6 +424,21 @@ definitions:
       mute_until:
         type: string
     type: object
+  dto.OneTimePreKeyResponse:
+    properties:
+      algorithm:
+        type: string
+      device_id:
+        type: integer
+      key_id:
+        type: integer
+      prekey_id:
+        type: integer
+      public_key:
+        type: string
+      version:
+        type: integer
+    type: object
   dto.PinConversationRequest:
     properties:
       is_pinned:
@@ -505,6 +559,23 @@ definitions:
     - conversation_id
     - message_type
     type: object
+  dto.SignedPreKeyResponse:
+    properties:
+      algorithm:
+        type: string
+      device_id:
+        type: integer
+      key_id:
+        type: integer
+      prekey_id:
+        type: integer
+      public_key:
+        type: string
+      signature:
+        type: string
+      version:
+        type: integer
+    type: object
   dto.UpdateConversationNicknameRequest:
     properties:
       nickname:
@@ -518,6 +589,54 @@ definitions:
         type: string
       full_name:
         type: string
+    type: object
+  dto.UploadIdentityKeyRequest:
+    properties:
+      algorithm:
+        type: string
+      device_uuid:
+        type: string
+      fingerprint:
+        type: string
+      public_key:
+        type: string
+      version:
+        type: integer
+    type: object
+  dto.UploadOneTimePreKeyItem:
+    properties:
+      algorithm:
+        type: string
+      key_id:
+        type: integer
+      public_key:
+        type: string
+      version:
+        type: integer
+    type: object
+  dto.UploadOneTimePreKeysRequest:
+    properties:
+      device_uuid:
+        type: string
+      prekeys:
+        items:
+          $ref: '#/definitions/dto.UploadOneTimePreKeyItem'
+        type: array
+    type: object
+  dto.UploadSignedPreKeyRequest:
+    properties:
+      algorithm:
+        type: string
+      device_uuid:
+        type: string
+      key_id:
+        type: integer
+      public_key:
+        type: string
+      signature:
+        type: string
+      version:
+        type: integer
     type: object
   dto.UserDeviceResponse:
     properties:
@@ -549,6 +668,15 @@ definitions:
         type: string
       updated_at:
         type: string
+      user_id:
+        type: integer
+    type: object
+  dto.UserKeyBundleResponse:
+    properties:
+      devices:
+        items:
+          $ref: '#/definitions/dto.DeviceKeyBundleResponse'
+        type: array
       user_id:
         type: integer
     type: object
@@ -614,6 +742,17 @@ definitions:
         $ref: '#/definitions/swaggerdocs.ConversationListData'
       message:
         example: lấy danh sách cuộc trò chuyện thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.E2EEKeyUploadResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/dto.E2EEKeyUploadResponse'
+      message:
+        example: upload key thành công
         type: string
       success:
         example: true
@@ -744,6 +883,17 @@ definitions:
         type: array
       message:
         example: Lấy danh sách thiết bị thành công
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  swaggerdocs.UserKeyBundleResponseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/dto.UserKeyBundleResponse'
+      message:
+        example: lấy key bundle thành công
         type: string
       success:
         example: true
@@ -1532,6 +1682,135 @@ paths:
       summary: Đăng ký hoặc cập nhật device
       tags:
       - Devices
+  /e2ee/keys/identity:
+    post:
+      consumes:
+      - application/json
+      description: Upload hoặc thay thế active identity public key cho device hiện
+        tại. Device phải thuộc user đang đăng nhập.
+      parameters:
+      - description: Identity key payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UploadIdentityKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swaggerdocs.E2EEKeyUploadResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload identity key
+      tags:
+      - E2EE
+  /e2ee/keys/one-time-prekeys:
+    post:
+      consumes:
+      - application/json
+      description: Upload danh sách one-time prekeys cho device hiện tại. Các prekey
+        này sẽ được consume một lần khi user khác lấy key bundle.
+      parameters:
+      - description: One-time prekeys payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UploadOneTimePreKeysRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swaggerdocs.E2EEKeyUploadResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload one-time prekeys
+      tags:
+      - E2EE
+  /e2ee/keys/signed-prekey:
+    post:
+      consumes:
+      - application/json
+      description: Upload hoặc thay thế active signed prekey cho device hiện tại.
+        Signed prekey được client ký bằng identity key.
+      parameters:
+      - description: Signed prekey payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UploadSignedPreKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swaggerdocs.E2EEKeyUploadResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload signed prekey
+      tags:
+      - E2EE
+  /e2ee/users/{user_id}/key-bundle:
+    get:
+      description: Lấy identity key, signed prekey và nếu có thì consume một one-time
+        prekey của từng active device thuộc user đích.
+      parameters:
+      - description: Target User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swaggerdocs.UserKeyBundleResponseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swaggerdocs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy key bundle của user
+      tags:
+      - E2EE
   /friends:
     get:
       description: Trả về danh sách bạn bè của user hiện tại
