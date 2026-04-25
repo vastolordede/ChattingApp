@@ -115,6 +115,17 @@ type MessageReactionListResponseEnvelope struct {
 	Message string                        `json:"message" example:"lấy reaction thành công"`
 	Data    []dto.MessageReactionResponse `json:"data"`
 }
+type E2EEKeyUploadResponseEnvelope struct {
+	Success bool                      `json:"success" example:"true"`
+	Message string                    `json:"message" example:"upload key thành công"`
+	Data    dto.E2EEKeyUploadResponse `json:"data"`
+}
+
+type UserKeyBundleResponseEnvelope struct {
+	Success bool                      `json:"success" example:"true"`
+	Message string                    `json:"message" example:"lấy key bundle thành công"`
+	Data    dto.UserKeyBundleResponse `json:"data"`
+}
 // ============================================================
 // DOC ENDPOINTS
 // Chỉ là function rỗng để gắn annotation.
@@ -752,3 +763,57 @@ func DeleteReactionDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /messages/{id}/recall [patch]
 func RecallMessageDoc() {}
+// UploadIdentityKeyDoc godoc
+// @Summary Upload identity key
+// @Description Upload hoặc thay thế active identity public key cho device hiện tại. Device phải thuộc user đang đăng nhập.
+// @Tags E2EE
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.UploadIdentityKeyRequest true "Identity key payload"
+// @Success 201 {object} E2EEKeyUploadResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /e2ee/keys/identity [post]
+func UploadIdentityKeyDoc() {}
+
+// UploadSignedPreKeyDoc godoc
+// @Summary Upload signed prekey
+// @Description Upload hoặc thay thế active signed prekey cho device hiện tại. Signed prekey được client ký bằng identity key.
+// @Tags E2EE
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.UploadSignedPreKeyRequest true "Signed prekey payload"
+// @Success 201 {object} E2EEKeyUploadResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /e2ee/keys/signed-prekey [post]
+func UploadSignedPreKeyDoc() {}
+
+// UploadOneTimePreKeysDoc godoc
+// @Summary Upload one-time prekeys
+// @Description Upload danh sách one-time prekeys cho device hiện tại. Các prekey này sẽ được consume một lần khi user khác lấy key bundle.
+// @Tags E2EE
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.UploadOneTimePreKeysRequest true "One-time prekeys payload"
+// @Success 201 {object} E2EEKeyUploadResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /e2ee/keys/one-time-prekeys [post]
+func UploadOneTimePreKeysDoc() {}
+
+// GetUserKeyBundleDoc godoc
+// @Summary Lấy key bundle của user
+// @Description Lấy identity key, signed prekey và nếu có thì consume một one-time prekey của từng active device thuộc user đích.
+// @Tags E2EE
+// @Security BearerAuth
+// @Produce json
+// @Param user_id path int true "Target User ID"
+// @Success 200 {object} UserKeyBundleResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /e2ee/users/{user_id}/key-bundle [get]
+func GetUserKeyBundleDoc() {}

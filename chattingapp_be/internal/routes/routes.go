@@ -13,6 +13,7 @@ type Handlers struct {
 	Conversation *handler.ConversationHandler
 	Message      *handler.MessageHandler
 	UserDevice   *handler.UserDeviceHandler
+	E2EEKey      *handler.E2EEKeyHandler
 	RealtimeHub *realtime.Hub
 }
 
@@ -90,4 +91,9 @@ func RegisterRoutes(
 	mux.Handle("PATCH /devices/{uuid}/disable", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.DisableDevice)))
 	mux.Handle("PATCH /devices/{uuid}/trust", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.TrustDevice)))
 	mux.Handle("PATCH /devices/{uuid}/untrust", authMiddleware.RequireAuth(http.HandlerFunc(handlers.UserDevice.UntrustDevice)))
+
+	mux.Handle("POST /e2ee/keys/identity", authMiddleware.RequireAuth(http.HandlerFunc(handlers.E2EEKey.UploadIdentityKey)))
+	mux.Handle("POST /e2ee/keys/signed-prekey", authMiddleware.RequireAuth(http.HandlerFunc(handlers.E2EEKey.UploadSignedPreKey)))
+	mux.Handle("POST /e2ee/keys/one-time-prekeys", authMiddleware.RequireAuth(http.HandlerFunc(handlers.E2EEKey.UploadOneTimePreKeys)))
+	mux.Handle("GET /e2ee/users/{user_id}/key-bundle", authMiddleware.RequireAuth(http.HandlerFunc(handlers.E2EEKey.GetUserKeyBundle)))
 }
