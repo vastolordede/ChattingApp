@@ -126,6 +126,17 @@ type UserKeyBundleResponseEnvelope struct {
 	Message string                    `json:"message" example:"lấy key bundle thành công"`
 	Data    dto.UserKeyBundleResponse `json:"data"`
 }
+type SendEncryptedMessageResponseEnvelope struct {
+	Success bool                             `json:"success" example:"true"`
+	Message string                           `json:"message" example:"gửi encrypted message thành công"`
+	Data    dto.SendEncryptedMessageResponse `json:"data"`
+}
+
+type EncryptedCiphertextListResponseEnvelope struct {
+	Success bool                              `json:"success" example:"true"`
+	Message string                            `json:"message" example:"lấy ciphertext thành công"`
+	Data    []dto.EncryptedCiphertextResponse `json:"data"`
+}
 // ============================================================
 // DOC ENDPOINTS
 // Chỉ là function rỗng để gắn annotation.
@@ -817,3 +828,42 @@ func UploadOneTimePreKeysDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /e2ee/users/{user_id}/key-bundle [get]
 func GetUserKeyBundleDoc() {}
+// SendEncryptedMessageDoc godoc
+// @Summary Gửi encrypted message
+// @Description Tạo message type encrypted và lưu ciphertext riêng theo từng target device. Backend không nhận hoặc lưu plaintext.
+// @Tags Messages
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.SendEncryptedMessageRequest true "Encrypted message payload"
+// @Success 201 {object} SendEncryptedMessageResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/encrypted [post]
+func SendEncryptedMessageDoc() {}
+
+// ListUndeliveredCiphertextsDoc godoc
+// @Summary Lấy ciphertext chưa delivered cho device hiện tại
+// @Description Lấy danh sách ciphertext chưa delivered theo device_uuid của user đang đăng nhập.
+// @Tags Messages
+// @Security BearerAuth
+// @Produce json
+// @Param device_uuid query string true "Device UUID"
+// @Success 200 {object} EncryptedCiphertextListResponseEnvelope
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/ciphertexts [get]
+func ListUndeliveredCiphertextsDoc() {}
+
+// MarkCiphertextDeliveredDoc godoc
+// @Summary Mark ciphertext delivered
+// @Description Đánh dấu một ciphertext là delivered. Chỉ owner của target device mới được mark.
+// @Tags Messages
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "Ciphertext ID"
+// @Success 200 {object} SuccessOnlyResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /messages/ciphertexts/{id}/delivered [patch]
+func MarkCiphertextDeliveredDoc() {}

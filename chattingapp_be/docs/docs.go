@@ -2002,6 +2002,98 @@ const docTemplate = `{
                 }
             }
         },
+        "/messages/ciphertexts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách ciphertext chưa delivered theo device_uuid của user đang đăng nhập.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Lấy ciphertext chưa delivered cho device hiện tại",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device UUID",
+                        "name": "device_uuid",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.EncryptedCiphertextListResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/ciphertexts/{id}/delivered": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Đánh dấu một ciphertext là delivered. Chỉ owner của target device mới được mark.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Mark ciphertext delivered",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Ciphertext ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.SuccessOnlyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/messages/cursor": {
             "get": {
                 "security": [
@@ -2045,6 +2137,57 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swaggerdocs.MessageListResponseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/encrypted": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tạo message type encrypted và lưu ciphertext riêng theo từng target device. Backend không nhận hoặc lưu plaintext.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Gửi encrypted message",
+                "parameters": [
+                    {
+                        "description": "Encrypted message payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendEncryptedMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swaggerdocs.SendEncryptedMessageResponseEnvelope"
                         }
                     },
                     "400": {
@@ -2792,6 +2935,74 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.EncryptedCiphertextItemRequest": {
+            "type": "object",
+            "required": [
+                "ciphertext",
+                "target_device_id"
+            ],
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "ciphertext": {
+                    "type": "string"
+                },
+                "encryption_header": {
+                    "type": "string"
+                },
+                "message_version": {
+                    "type": "integer"
+                },
+                "nonce": {
+                    "type": "string"
+                },
+                "target_device_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.EncryptedCiphertextResponse": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
+                "ciphertext": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "delivered_at": {
+                    "type": "string"
+                },
+                "encryption_header": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_delivered": {
+                    "type": "boolean"
+                },
+                "message_id": {
+                    "type": "integer"
+                },
+                "message_version": {
+                    "type": "integer"
+                },
+                "nonce": {
+                    "type": "string"
+                },
+                "sender_device_id": {
+                    "type": "integer"
+                },
+                "target_device_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.ForgotPasswordRequest": {
             "type": "object",
             "required": [
@@ -3303,6 +3514,48 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SendEncryptedMessageRequest": {
+            "type": "object",
+            "required": [
+                "ciphertexts",
+                "conversation_id",
+                "sender_device_uuid"
+            ],
+            "properties": {
+                "ciphertexts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.EncryptedCiphertextItemRequest"
+                    }
+                },
+                "client_message_id": {
+                    "type": "string"
+                },
+                "conversation_id": {
+                    "type": "integer"
+                },
+                "reply_to_message_id": {
+                    "type": "integer"
+                },
+                "sender_device_uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SendEncryptedMessageResponse": {
+            "type": "object",
+            "properties": {
+                "ciphertexts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.EncryptedCiphertextResponse"
+                    }
+                },
+                "message": {
+                    "$ref": "#/definitions/dto.MessageResponse"
+                }
+            }
+        },
         "dto.SendFriendRequestRequest": {
             "type": "object",
             "required": [
@@ -3650,6 +3903,25 @@ const docTemplate = `{
                 }
             }
         },
+        "swaggerdocs.EncryptedCiphertextListResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.EncryptedCiphertextResponse"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "lấy ciphertext thành công"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "swaggerdocs.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -3780,6 +4052,22 @@ const docTemplate = `{
                 "refresh_token": {
                     "type": "string",
                     "example": "your_refresh_token_here"
+                }
+            }
+        },
+        "swaggerdocs.SendEncryptedMessageResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.SendEncryptedMessageResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "gửi encrypted message thành công"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

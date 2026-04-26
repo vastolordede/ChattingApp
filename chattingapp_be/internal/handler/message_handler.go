@@ -539,3 +539,102 @@ func (h *MessageHandler) RecallMessage(w http.ResponseWriter, r *http.Request) {
 		Data:    resp,
 	})
 }
+func (h *MessageHandler) SendEncryptedMessage(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	var req dto.SendEncryptedMessageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "request body không hợp lệ",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	resp, err := h.messageService.SendEncryptedMessage(r.Context(), userID, req)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "gửi encrypted message thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, dto.APIResponse{
+		Success: true,
+		Message: "gửi encrypted message thành công",
+		Data:    resp,
+	})
+}
+
+func (h *MessageHandler) ListUndeliveredCiphertexts(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	deviceUUID := r.URL.Query().Get("device_uuid")
+	items, err := h.messageService.ListUndeliveredCiphertextsForDevice(r.Context(), userID, deviceUUID)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "lấy ciphertext thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "lấy ciphertext thành công",
+		Data:    items,
+	})
+}
+
+func (h *MessageHandler) MarkCiphertextDelivered(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, dto.APIResponse{
+			Success: false,
+			Message: "unauthorized",
+		})
+		return
+	}
+
+	idStr := r.PathValue("id")
+	ciphertextID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || ciphertextID <= 0 {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "ciphertext id không hợp lệ",
+		})
+		return
+	}
+
+	if err := h.messageService.MarkCiphertextDelivered(r.Context(), userID, ciphertextID); err != nil {
+		writeJSON(w, http.StatusBadRequest, dto.APIResponse{
+			Success: false,
+			Message: "mark ciphertext delivered thất bại",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "mark ciphertext delivered thành công",
+	})
+}

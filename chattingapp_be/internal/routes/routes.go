@@ -73,6 +73,9 @@ func RegisterRoutes(
 	mux.Handle("GET /conversations/unread-count", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Conversation.GetUnreadCount)))
 
 	mux.Handle("POST /messages", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.SendMessage)))
+	mux.Handle("POST /messages/encrypted", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.SendEncryptedMessage)))
+	mux.Handle("GET /messages/ciphertexts", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListUndeliveredCiphertexts)))
+	mux.Handle("PATCH /messages/ciphertexts/{id}/delivered", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.MarkCiphertextDelivered)))
 	mux.Handle("GET /messages", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListMessages)))
 	mux.Handle("GET /messages/search", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.SearchMessages)))
 	mux.Handle("GET /messages/cursor", authMiddleware.RequireAuth(http.HandlerFunc(handlers.Message.ListMessagesBeforeID)))
