@@ -19,6 +19,8 @@ type MessageService struct {
 	conversationRepo       *repository.ConversationRepository
 	conversationMemberRepo *repository.ConversationMemberRepository
 	userRepo               *repository.UserRepository
+	messageCiphertextRepo *repository.MessageCiphertextRepository
+	userDeviceRepo        *repository.UserDeviceRepository
 	realtimeHub 			*realtime.Hub
 }
 
@@ -29,6 +31,8 @@ func NewMessageService(
 	conversationRepo *repository.ConversationRepository,
 	conversationMemberRepo *repository.ConversationMemberRepository,
 	userRepo *repository.UserRepository,
+	messageCiphertextRepo *repository.MessageCiphertextRepository,
+	userDeviceRepo *repository.UserDeviceRepository,
 	realtimeHub *realtime.Hub,
 ) *MessageService {
 	return &MessageService{
@@ -38,6 +42,8 @@ func NewMessageService(
 		conversationRepo:       conversationRepo,
 		conversationMemberRepo: conversationMemberRepo,
 		userRepo:               userRepo,
+		messageCiphertextRepo: messageCiphertextRepo,
+		userDeviceRepo:        userDeviceRepo,
 		realtimeHub: realtimeHub,
 	}
 }
@@ -756,4 +762,290 @@ func (s *MessageService) broadcastMessageEvent(
 	}
 
 	s.realtimeHub.BroadcastToUsers(userIDs, event)
+}
+func toEncryptedCiphertextResponse(c models.MessageCiphertext) dto.EncryptedCiphertextResponse {
+	var senderDeviceID *int64
+	if c.SenderDeviceID.Valid {
+		senderDeviceID = &c.SenderDeviceID.Int64
+	}
+
+	var encryptionHeader *string
+	if c.EncryptionHeader.Valid {
+		encryptionHeader = &c.EncryptionHeader.String
+	}
+
+	var nonce *string
+	if c.Nonce.Valid {
+		nonce = &c.Nonce.String
+	}
+
+	var deliveredAt *string
+	if c.DeliveredAt.Valid {
+		s := c.DeliveredAt.Time.Format(time.RFC3339)
+		deliveredAt = &s
+	}
+
+	return dto.EncryptedCiphertextResponse{
+		ID:               c.ID,
+		MessageID:        c.MessageID,
+		TargetDeviceID:   c.TargetDeviceID,
+		SenderDeviceID:   senderDeviceID,
+		Ciphertext:       c.Ciphertext,
+		EncryptionHeader: encryptionHeader,
+		Nonce:            nonce,
+		Algorithm:        c.Algorithm,
+		MessageVersion:   c.MessageVersion,
+		IsDelivered:      c.IsDelivered,
+		DeliveredAt:      deliveredAt,
+		CreatedAt:        c.CreatedAt.Format(time.RFC3339),
+	}
+}
+func (s *MessageService) SendEncryptedMessage(
+	ctx context.Context,
+	senderUserID int64,
+	req dto.SendEncryptedMessageRequest,
+) (*dto.SendEncryptedMessageResponse, error) {
+	if req.ConversationID <= 0 {
+		return nil, errors.New("conversation_id is required")
+	}
+	if strings.TrimSpace(req.SenderDeviceUUID) == "" {
+		return nil, errors.New("sender_device_uuid is required")
+	}
+	if len(req.Ciphertexts) == 0 {
+		return nil, errors.New("ciphertexts is required")
+	}
+
+	senderMember, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, req.ConversationID, senderUserID)
+	if err != nil {
+		return nil, err
+	}
+	if senderMember == nil || !senderMember.IsActive {
+		return nil, errors.New("sender is not active member of conversation")
+	}
+
+	senderDevice, err := s.userDeviceRepo.GetByUUIDAndUserID(ctx, strings.TrimSpace(req.SenderDeviceUUID), senderUserID)
+	if err != nil {
+		return nil, err
+	}
+	if senderDevice == nil || !senderDevice.IsActive {
+		return nil, errors.New("sender device not found or inactive")
+	}
+
+	seenTargetDevices := make(map[int64]bool)
+	for _, item := range req.Ciphertexts {
+		if item.TargetDeviceID <= 0 {
+			return nil, errors.New("target_device_id must be greater than 0")
+		}
+		if seenTargetDevices[item.TargetDeviceID] {
+			return nil, errors.New("duplicated target_device_id in ciphertexts")
+		}
+		seenTargetDevices[item.TargetDeviceID] = true
+
+		if strings.TrimSpace(item.Ciphertext) == "" {
+			return nil, errors.New("ciphertext is required")
+		}
+
+		targetDevice, err := s.userDeviceRepo.GetByID(ctx, item.TargetDeviceID)
+		if err != nil {
+			return nil, err
+		}
+		if targetDevice == nil || !targetDevice.IsActive {
+			return nil, errors.New("target device not found or inactive")
+		}
+
+		targetMember, err := s.conversationMemberRepo.GetByConversationAndUser(ctx, req.ConversationID, targetDevice.UserID)
+		if err != nil {
+			return nil, err
+		}
+		if targetMember == nil || !targetMember.IsActive {
+			return nil, errors.New("target device owner is not active member of conversation")
+		}
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	now := time.Now()
+
+	var clientMessageID sql.NullString
+	if req.ClientMessageID != nil && strings.TrimSpace(*req.ClientMessageID) != "" {
+		clientMessageID = sql.NullString{
+			String: strings.TrimSpace(*req.ClientMessageID),
+			Valid:  true,
+		}
+	}
+
+	var replyToMessageID sql.NullInt64
+	if req.ReplyToMessageID != nil && *req.ReplyToMessageID > 0 {
+		replyToMessageID = sql.NullInt64{
+			Int64: *req.ReplyToMessageID,
+			Valid: true,
+		}
+	}
+
+	message := &models.Message{
+		ConversationID:         req.ConversationID,
+		SenderUserID:           senderUserID,
+		MessageType:            "encrypted",
+		Content:                sql.NullString{},
+		ReplyToMessageID:       replyToMessageID,
+		ForwardedFromMessageID: sql.NullInt64{},
+		Status:                 "sent",
+		IsEdited:               false,
+		EditedAt:               sql.NullTime{},
+		IsDeleted:              false,
+		DeletedAt:              sql.NullTime{},
+		ClientMessageID:        clientMessageID,
+		SentAt:                 now,
+		CreatedAt:              now,
+		UpdatedAt:              now,
+	}
+
+	messageID, err := s.messageRepo.CreateTx(ctx, tx, message)
+	if err != nil {
+		return nil, err
+	}
+	message.ID = messageID
+
+	cipherResponses := make([]dto.EncryptedCiphertextResponse, 0, len(req.Ciphertexts))
+
+	for _, item := range req.Ciphertexts {
+		algorithm := strings.TrimSpace(item.Algorithm)
+		if algorithm == "" {
+			algorithm = "XCHACHA20_POLY1305"
+		}
+
+		version := item.MessageVersion
+		if version <= 0 {
+			version = 1
+		}
+
+		var encryptionHeader sql.NullString
+		if item.EncryptionHeader != nil && strings.TrimSpace(*item.EncryptionHeader) != "" {
+			encryptionHeader = sql.NullString{
+				String: strings.TrimSpace(*item.EncryptionHeader),
+				Valid:  true,
+			}
+		}
+
+		var nonce sql.NullString
+		if item.Nonce != nil && strings.TrimSpace(*item.Nonce) != "" {
+			nonce = sql.NullString{
+				String: strings.TrimSpace(*item.Nonce),
+				Valid:  true,
+			}
+		}
+
+		cipher := &models.MessageCiphertext{
+			MessageID:          messageID,
+			TargetDeviceID:    item.TargetDeviceID,
+			SenderDeviceID:    sql.NullInt64{Int64: senderDevice.ID, Valid: true},
+			Ciphertext:        strings.TrimSpace(item.Ciphertext),
+			EncryptionHeader:  encryptionHeader,
+			Nonce:             nonce,
+			Algorithm:         algorithm,
+			MessageVersion:    version,
+			IsDelivered:       false,
+			DeliveredAt:       sql.NullTime{},
+			CreatedAt:         now,
+		}
+
+		cipherID, err := s.messageCiphertextRepo.CreateTx(ctx, tx, cipher)
+		if err != nil {
+			return nil, err
+		}
+		cipher.ID = cipherID
+
+		cipherResponses = append(cipherResponses, toEncryptedCiphertextResponse(*cipher))
+	}
+
+	if err := s.conversationRepo.UpdateLastMessageTx(ctx, tx, req.ConversationID, messageID, now); err != nil {
+	return nil, err
+}
+
+if err := tx.Commit(); err != nil {
+	return nil, err
+}
+
+messageResp, err := s.buildMessageResponse(ctx, messageID)
+if err != nil {
+	return nil, err
+}
+messageResp.Content = nil
+
+s.broadcastMessageEvent(ctx, req.ConversationID, realtime.Event{
+	Type:           "message_created",
+	ConversationID: req.ConversationID,
+	UserID:         senderUserID,
+	MessageID:      messageID,
+	Payload:        messageResp,
+})
+
+return &dto.SendEncryptedMessageResponse{
+	Message:     *messageResp,
+	Ciphertexts: cipherResponses,
+}, nil
+}
+func (s *MessageService) ListUndeliveredCiphertextsForDevice(
+	ctx context.Context,
+	userID int64,
+	deviceUUID string,
+) ([]dto.EncryptedCiphertextResponse, error) {
+	deviceUUID = strings.TrimSpace(deviceUUID)
+	if deviceUUID == "" {
+		return nil, errors.New("device_uuid is required")
+	}
+
+	device, err := s.userDeviceRepo.GetByUUIDAndUserID(ctx, deviceUUID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if device == nil || !device.IsActive {
+		return nil, errors.New("device not found or inactive")
+	}
+
+	items, err := s.messageCiphertextRepo.ListUndeliveredByTargetDeviceID(ctx, device.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := make([]dto.EncryptedCiphertextResponse, 0, len(items))
+	for _, item := range items {
+		resp = append(resp, toEncryptedCiphertextResponse(item))
+	}
+
+	return resp, nil
+}
+func (s *MessageService) MarkCiphertextDelivered(
+	ctx context.Context,
+	userID int64,
+	ciphertextID int64,
+) error {
+	if ciphertextID <= 0 {
+		return errors.New("ciphertext id is invalid")
+	}
+
+	cipher, err := s.messageCiphertextRepo.GetByID(ctx, ciphertextID)
+	if err != nil {
+		return err
+	}
+	if cipher == nil {
+		return errors.New("ciphertext not found")
+	}
+
+	targetDevice, err := s.userDeviceRepo.GetByID(ctx, cipher.TargetDeviceID)
+	if err != nil {
+		return err
+	}
+	if targetDevice == nil {
+		return errors.New("target device not found")
+	}
+	if targetDevice.UserID != userID {
+		return errors.New("you are not allowed to mark this ciphertext delivered")
+	}
+
+	return s.messageCiphertextRepo.MarkDelivered(ctx, ciphertextID)
 }

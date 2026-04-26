@@ -64,7 +64,7 @@ func main() {
 	deviceOneTimePreKeyRepo := repository.NewDeviceOneTimePreKeyRepository(db)
 	messageCiphertextRepo := repository.NewMessageCiphertextRepository(db)
 
-	_ = messageCiphertextRepo
+	
 
 	authService := service.NewAuthService(
 		userRepo,
@@ -98,6 +98,8 @@ func main() {
 		conversationRepo,
 		conversationMemberRepo,
 		userRepo,
+		messageCiphertextRepo,
+		userDeviceRepo,
 		realtimeHub,
 	)
 
