@@ -6,9 +6,6 @@ import "chattingapp_be/internal/dto"
 // SWAGGER GENERAL INFO
 // ============================================================
 
-
-
-
 // ============================================================
 // DOC RESPONSE MODELS
 // Không dùng APIResponse trực tiếp vì Data là interface{},
@@ -137,6 +134,7 @@ type EncryptedCiphertextListResponseEnvelope struct {
 	Message string                            `json:"message" example:"lấy ciphertext thành công"`
 	Data    []dto.EncryptedCiphertextResponse `json:"data"`
 }
+
 // ============================================================
 // DOC ENDPOINTS
 // Chỉ là function rỗng để gắn annotation.
@@ -412,6 +410,7 @@ func ListMessagesDoc() {}
 // @Failure 500 {object} ErrorResponse
 // @Router /devices/register [post]
 func RegisterDeviceDoc() {}
+
 // UpdateMyProfileDoc godoc
 // @Summary Cập nhật profile của user hiện tại
 // @Description Cập nhật full_name, avatar_url, bio
@@ -439,6 +438,7 @@ func UpdateMyProfileDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /auth/change-password [patch]
 func ChangePasswordDoc() {}
+
 // ForgotPasswordDoc godoc
 // @Summary Quên mật khẩu
 // @Description Gửi email chứa hướng dẫn đặt lại mật khẩu
@@ -462,6 +462,7 @@ func ForgotPasswordDoc() {}
 // @Failure 400 {object} ErrorResponse
 // @Router /auth/reset-password [post]
 func ResetPasswordDoc() {}
+
 // ListMyDevicesDoc godoc
 // @Summary Danh sách thiết bị của tôi
 // @Description Lấy danh sách thiết bị đã đăng ký của user hiện tại
@@ -474,6 +475,7 @@ func ResetPasswordDoc() {}
 // @Failure 500 {object} ErrorResponse
 // @Router /devices [get]
 func ListMyDevicesDoc() {}
+
 // DeleteDeviceDoc godoc
 // @Summary Xóa thiết bị
 // @Description Disable thiết bị và revoke toàn bộ refresh token của thiết bị đó
@@ -487,6 +489,7 @@ func ListMyDevicesDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /devices/{uuid} [delete]
 func DeleteDeviceDoc() {}
+
 // LogoutDeviceDoc godoc
 // @Summary Logout theo thiết bị
 // @Description Revoke toàn bộ refresh token của thiết bị theo UUID
@@ -500,6 +503,7 @@ func DeleteDeviceDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /devices/{uuid}/logout [post]
 func LogoutDeviceDoc() {}
+
 // DisableDeviceDoc godoc
 // @Summary Disable thiết bị
 // @Description Vô hiệu hóa thiết bị và revoke toàn bộ refresh token của thiết bị đó
@@ -541,6 +545,7 @@ func TrustDeviceDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /devices/{uuid}/untrust [patch]
 func UntrustDeviceDoc() {}
+
 // ListIncomingFriendRequestsDoc godoc
 // @Summary Danh sách lời mời đến
 // @Description Lấy danh sách lời mời kết bạn đang chờ mà người hiện tại là người nhận
@@ -594,6 +599,7 @@ func CancelFriendRequestDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /friends/{user_id} [delete]
 func UnfriendDoc() {}
+
 // SearchUsersDoc godoc
 // @Summary Tìm user
 // @Description Tìm user theo username hoặc full_name
@@ -635,6 +641,7 @@ func ListMutualFriendsDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /friends/{user_id}/block [post]
 func BlockUserDoc() {}
+
 // PinConversationDoc godoc
 // @Summary Pin conversation
 // @Description Ghim hoặc bỏ ghim conversation
@@ -676,6 +683,7 @@ func ArchiveConversationDoc() {}
 // @Failure 500 {object} ErrorResponse
 // @Router /conversations/unread-count [get]
 func GetUnreadCountDoc() {}
+
 // SearchMessagesDoc godoc
 // @Summary Tìm kiếm tin nhắn
 // @Description Tìm kiếm message theo conversation_id và từ khóa q
@@ -762,6 +770,7 @@ func ListReactionsDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /messages/{id}/reactions [delete]
 func DeleteReactionDoc() {}
+
 // RecallMessageDoc godoc
 // @Summary Thu hồi tin nhắn
 // @Description Chỉ sender được thu hồi message. Message sau khi recall sẽ bị ẩn content.
@@ -774,6 +783,7 @@ func DeleteReactionDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /messages/{id}/recall [patch]
 func RecallMessageDoc() {}
+
 // UploadIdentityKeyDoc godoc
 // @Summary Upload identity key
 // @Description Upload hoặc thay thế active identity public key cho device hiện tại. Device phải thuộc user đang đăng nhập.
@@ -828,9 +838,10 @@ func UploadOneTimePreKeysDoc() {}
 // @Failure 401 {object} ErrorResponse
 // @Router /e2ee/users/{user_id}/key-bundle [get]
 func GetUserKeyBundleDoc() {}
+
 // SendEncryptedMessageDoc godoc
 // @Summary Gửi encrypted message
-// @Description Tạo message type encrypted và lưu ciphertext riêng theo từng target device. Backend không nhận hoặc lưu plaintext.
+// @Description Tạo message type encrypted và lưu ciphertext riêng theo từng target device. Backend không nhận plaintext, không lưu plaintext vào messages.content, và WebSocket chỉ gửi metadata.
 // @Tags Messages
 // @Security BearerAuth
 // @Accept json
@@ -844,7 +855,7 @@ func SendEncryptedMessageDoc() {}
 
 // ListUndeliveredCiphertextsDoc godoc
 // @Summary Lấy ciphertext chưa delivered cho device hiện tại
-// @Description Lấy danh sách ciphertext chưa delivered theo device_uuid của user đang đăng nhập.
+// @Description Device hiện tại gọi API này để lấy ciphertext chưa delivered. Ciphertext chỉ trả về cho device_uuid thuộc user đang đăng nhập.
 // @Tags Messages
 // @Security BearerAuth
 // @Produce json
@@ -857,7 +868,7 @@ func ListUndeliveredCiphertextsDoc() {}
 
 // MarkCiphertextDeliveredDoc godoc
 // @Summary Mark ciphertext delivered
-// @Description Đánh dấu một ciphertext là delivered. Chỉ owner của target device mới được mark.
+// @Description Đánh dấu ciphertext là delivered. Chỉ owner của target device mới được mark delivered.
 // @Tags Messages
 // @Security BearerAuth
 // @Produce json

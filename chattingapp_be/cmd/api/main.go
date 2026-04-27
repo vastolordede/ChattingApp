@@ -64,8 +64,6 @@ func main() {
 	deviceOneTimePreKeyRepo := repository.NewDeviceOneTimePreKeyRepository(db)
 	messageCiphertextRepo := repository.NewMessageCiphertextRepository(db)
 
-	
-
 	authService := service.NewAuthService(
 		userRepo,
 		userDeviceRepo,
@@ -106,11 +104,11 @@ func main() {
 	userDeviceService := service.NewUserDeviceService(userDeviceRepo, userRefreshTokenRepo)
 
 	e2eeKeyService := service.NewE2EEKeyService(
-	userDeviceRepo,
-	deviceIdentityKeyRepo,
-	deviceSignedPreKeyRepo,
-	deviceOneTimePreKeyRepo,
-)
+		userDeviceRepo,
+		deviceIdentityKeyRepo,
+		deviceSignedPreKeyRepo,
+		deviceOneTimePreKeyRepo,
+	)
 
 	authHandler := handler.NewAuthHandler(authService)
 	friendHandler := handler.NewFriendHandler(friendService)
@@ -131,8 +129,8 @@ func main() {
 			Conversation: conversationHandler,
 			Message:      messageHandler,
 			UserDevice:   userDeviceHandler,
-			E2EEKey: e2eeKeyHandler,
-			RealtimeHub: realtimeHub,
+			E2EEKey:      e2eeKeyHandler,
+			RealtimeHub:  realtimeHub,
 		},
 		authMiddleware,
 	)

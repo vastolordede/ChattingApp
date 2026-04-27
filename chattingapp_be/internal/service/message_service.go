@@ -3,13 +3,13 @@ package service
 import (
 	"chattingapp_be/internal/dto"
 	"chattingapp_be/internal/models"
+	"chattingapp_be/internal/realtime"
 	"chattingapp_be/internal/repository"
 	"context"
 	"database/sql"
 	"errors"
 	"strings"
 	"time"
-	"chattingapp_be/internal/realtime"
 )
 
 type MessageService struct {
@@ -19,9 +19,9 @@ type MessageService struct {
 	conversationRepo       *repository.ConversationRepository
 	conversationMemberRepo *repository.ConversationMemberRepository
 	userRepo               *repository.UserRepository
-	messageCiphertextRepo *repository.MessageCiphertextRepository
-	userDeviceRepo        *repository.UserDeviceRepository
-	realtimeHub 			*realtime.Hub
+	messageCiphertextRepo  *repository.MessageCiphertextRepository
+	userDeviceRepo         *repository.UserDeviceRepository
+	realtimeHub            *realtime.Hub
 }
 
 func NewMessageService(
@@ -42,9 +42,9 @@ func NewMessageService(
 		conversationRepo:       conversationRepo,
 		conversationMemberRepo: conversationMemberRepo,
 		userRepo:               userRepo,
-		messageCiphertextRepo: messageCiphertextRepo,
-		userDeviceRepo:        userDeviceRepo,
-		realtimeHub: realtimeHub,
+		messageCiphertextRepo:  messageCiphertextRepo,
+		userDeviceRepo:         userDeviceRepo,
+		realtimeHub:            realtimeHub,
 	}
 }
 
@@ -57,7 +57,7 @@ func (s *MessageService) SendMessage(
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if member == nil || !member.IsActive {
 		return nil, errors.New("bạn không thuộc cuộc trò chuyện này")
 	}
@@ -130,101 +130,101 @@ func (s *MessageService) SendMessage(
 	if err != nil {
 		return nil, err
 	}
-for _, attachmentReq := range req.Attachments {
-	attachmentType := strings.TrimSpace(attachmentReq.AttachmentType)
-	fileName := strings.TrimSpace(attachmentReq.FileName)
-	mimeType := strings.TrimSpace(attachmentReq.MimeType)
-	fileURL := strings.TrimSpace(attachmentReq.FileURL)
+	for _, attachmentReq := range req.Attachments {
+		attachmentType := strings.TrimSpace(attachmentReq.AttachmentType)
+		fileName := strings.TrimSpace(attachmentReq.FileName)
+		mimeType := strings.TrimSpace(attachmentReq.MimeType)
+		fileURL := strings.TrimSpace(attachmentReq.FileURL)
 
-	if attachmentType == "" {
-		return nil, errors.New("attachment_type không được để trống")
-	}
-	if fileName == "" {
-		return nil, errors.New("file_name không được để trống")
-	}
-	if mimeType == "" {
-		return nil, errors.New("mime_type không được để trống")
-	}
-	if attachmentReq.FileSize <= 0 {
-		return nil, errors.New("file_size không hợp lệ")
-	}
-	if fileURL == "" {
-		return nil, errors.New("file_url không được để trống")
-	}
+		if attachmentType == "" {
+			return nil, errors.New("attachment_type không được để trống")
+		}
+		if fileName == "" {
+			return nil, errors.New("file_name không được để trống")
+		}
+		if mimeType == "" {
+			return nil, errors.New("mime_type không được để trống")
+		}
+		if attachmentReq.FileSize <= 0 {
+			return nil, errors.New("file_size không hợp lệ")
+		}
+		if fileURL == "" {
+			return nil, errors.New("file_url không được để trống")
+		}
 
-	attachment := &models.MessageAttachment{
-		MessageID:      messageID,
-		AttachmentType: attachmentType,
-		FileName:       fileName,
-		MimeType:       mimeType,
-		FileSize:       attachmentReq.FileSize,
-		FileURL:        fileURL,
-		CreatedAt:      now,
-	}
+		attachment := &models.MessageAttachment{
+			MessageID:      messageID,
+			AttachmentType: attachmentType,
+			FileName:       fileName,
+			MimeType:       mimeType,
+			FileSize:       attachmentReq.FileSize,
+			FileURL:        fileURL,
+			CreatedAt:      now,
+		}
 
-	if attachmentReq.ThumbnailURL != nil && strings.TrimSpace(*attachmentReq.ThumbnailURL) != "" {
-		attachment.ThumbnailURL = sql.NullString{
-			String: strings.TrimSpace(*attachmentReq.ThumbnailURL),
-			Valid:  true,
+		if attachmentReq.ThumbnailURL != nil && strings.TrimSpace(*attachmentReq.ThumbnailURL) != "" {
+			attachment.ThumbnailURL = sql.NullString{
+				String: strings.TrimSpace(*attachmentReq.ThumbnailURL),
+				Valid:  true,
+			}
 		}
-	}
-	if attachmentReq.Width != nil {
-		attachment.Width = sql.NullInt64{
-			Int64: int64(*attachmentReq.Width),
-			Valid: true,
+		if attachmentReq.Width != nil {
+			attachment.Width = sql.NullInt64{
+				Int64: int64(*attachmentReq.Width),
+				Valid: true,
+			}
 		}
-	}
-	if attachmentReq.Height != nil {
-		attachment.Height = sql.NullInt64{
-			Int64: int64(*attachmentReq.Height),
-			Valid: true,
+		if attachmentReq.Height != nil {
+			attachment.Height = sql.NullInt64{
+				Int64: int64(*attachmentReq.Height),
+				Valid: true,
+			}
 		}
-	}
-	if attachmentReq.DurationSeconds != nil {
-		attachment.DurationSeconds = sql.NullInt64{
-			Int64: int64(*attachmentReq.DurationSeconds),
-			Valid: true,
+		if attachmentReq.DurationSeconds != nil {
+			attachment.DurationSeconds = sql.NullInt64{
+				Int64: int64(*attachmentReq.DurationSeconds),
+				Valid: true,
+			}
 		}
-	}
-	if attachmentReq.Checksum != nil && strings.TrimSpace(*attachmentReq.Checksum) != "" {
-		attachment.Checksum = sql.NullString{
-			String: strings.TrimSpace(*attachmentReq.Checksum),
-			Valid:  true,
+		if attachmentReq.Checksum != nil && strings.TrimSpace(*attachmentReq.Checksum) != "" {
+			attachment.Checksum = sql.NullString{
+				String: strings.TrimSpace(*attachmentReq.Checksum),
+				Valid:  true,
+			}
 		}
-	}
-	if attachmentReq.EncryptionKeyHint != nil && strings.TrimSpace(*attachmentReq.EncryptionKeyHint) != "" {
-		attachment.EncryptionKeyHint = sql.NullString{
-			String: strings.TrimSpace(*attachmentReq.EncryptionKeyHint),
-			Valid:  true,
+		if attachmentReq.EncryptionKeyHint != nil && strings.TrimSpace(*attachmentReq.EncryptionKeyHint) != "" {
+			attachment.EncryptionKeyHint = sql.NullString{
+				String: strings.TrimSpace(*attachmentReq.EncryptionKeyHint),
+				Valid:  true,
+			}
 		}
-	}
 
-	if _, err := s.messageAttachmentRepo.CreateTx(ctx, tx, attachment); err != nil {
-		return nil, err
+		if _, err := s.messageAttachmentRepo.CreateTx(ctx, tx, attachment); err != nil {
+			return nil, err
+		}
 	}
-}
 	if err := s.conversationRepo.UpdateLastMessageTx(ctx, tx, req.ConversationID, messageID, now); err != nil {
 		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
-	return nil, err
-}
+		return nil, err
+	}
 
-resp, err := s.buildMessageResponse(ctx, messageID)
-if err != nil {
-	return nil, err
-}
+	resp, err := s.buildMessageResponse(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
 
-s.broadcastMessageEvent(ctx, req.ConversationID, realtime.Event{
-	Type:           "message_created",
-	ConversationID: req.ConversationID,
-	UserID:         userID,
-	MessageID:      messageID,
-	Payload:        resp,
-})
+	s.broadcastMessageEvent(ctx, req.ConversationID, realtime.Event{
+		Type:           "message_created",
+		ConversationID: req.ConversationID,
+		UserID:         userID,
+		MessageID:      messageID,
+		Payload:        resp,
+	})
 
-return resp, nil
+	return resp, nil
 }
 
 func (s *MessageService) EditMessage(
@@ -429,8 +429,8 @@ func (s *MessageService) buildMessageResponseFromModel(ctx context.Context, m *m
 		EditedAt:               nullTimeToPtrString(m.EditedAt),
 		IsDeleted:              m.IsDeleted,
 		DeletedAt:              nullTimeToPtrString(m.DeletedAt),
-		IsRecalled: m.IsRecalled,
-		RecalledAt: nullTimeToPtrString(m.RecalledAt),
+		IsRecalled:             m.IsRecalled,
+		RecalledAt:             nullTimeToPtrString(m.RecalledAt),
 		ClientMessageID:        nullStringToPtr(m.ClientMessageID),
 		SentAt:                 m.SentAt.Format(time.RFC3339),
 		CreatedAt:              m.CreatedAt.Format(time.RFC3339),
@@ -940,17 +940,17 @@ func (s *MessageService) SendEncryptedMessage(
 		}
 
 		cipher := &models.MessageCiphertext{
-			MessageID:          messageID,
-			TargetDeviceID:    item.TargetDeviceID,
-			SenderDeviceID:    sql.NullInt64{Int64: senderDevice.ID, Valid: true},
-			Ciphertext:        strings.TrimSpace(item.Ciphertext),
-			EncryptionHeader:  encryptionHeader,
-			Nonce:             nonce,
-			Algorithm:         algorithm,
-			MessageVersion:    version,
-			IsDelivered:       false,
-			DeliveredAt:       sql.NullTime{},
-			CreatedAt:         now,
+			MessageID:        messageID,
+			TargetDeviceID:   item.TargetDeviceID,
+			SenderDeviceID:   sql.NullInt64{Int64: senderDevice.ID, Valid: true},
+			Ciphertext:       strings.TrimSpace(item.Ciphertext),
+			EncryptionHeader: encryptionHeader,
+			Nonce:            nonce,
+			Algorithm:        algorithm,
+			MessageVersion:   version,
+			IsDelivered:      false,
+			DeliveredAt:      sql.NullTime{},
+			CreatedAt:        now,
 		}
 
 		cipherID, err := s.messageCiphertextRepo.CreateTx(ctx, tx, cipher)
@@ -963,31 +963,38 @@ func (s *MessageService) SendEncryptedMessage(
 	}
 
 	if err := s.conversationRepo.UpdateLastMessageTx(ctx, tx, req.ConversationID, messageID, now); err != nil {
-	return nil, err
-}
+		return nil, err
+	}
 
-if err := tx.Commit(); err != nil {
-	return nil, err
-}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 
-messageResp, err := s.buildMessageResponse(ctx, messageID)
-if err != nil {
-	return nil, err
-}
-messageResp.Content = nil
+	messageResp, err := s.buildMessageResponse(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+	messageResp.Content = nil
 
-s.broadcastMessageEvent(ctx, req.ConversationID, realtime.Event{
-	Type:           "message_created",
-	ConversationID: req.ConversationID,
-	UserID:         senderUserID,
-	MessageID:      messageID,
-	Payload:        messageResp,
-})
+	s.broadcastMessageEvent(ctx, req.ConversationID, realtime.Event{
+		Type:           "encrypted_message_created",
+		ConversationID: req.ConversationID,
+		UserID:         senderUserID,
+		MessageID:      messageID,
+		Payload: map[string]any{
+			"message_id":      messageID,
+			"conversation_id": req.ConversationID,
+			"sender_user_id":  senderUserID,
+			"message_type":    "encrypted",
+			"status":          "sent",
+			"sent_at":         now.Format(time.RFC3339),
+		},
+	})
 
-return &dto.SendEncryptedMessageResponse{
-	Message:     *messageResp,
-	Ciphertexts: cipherResponses,
-}, nil
+	return &dto.SendEncryptedMessageResponse{
+		Message:     *messageResp,
+		Ciphertexts: cipherResponses,
+	}, nil
 }
 func (s *MessageService) ListUndeliveredCiphertextsForDevice(
 	ctx context.Context,
