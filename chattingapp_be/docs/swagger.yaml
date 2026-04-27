@@ -2519,8 +2519,8 @@ paths:
       - Messages
   /messages/ciphertexts:
     get:
-      description: Lấy danh sách ciphertext chưa delivered theo device_uuid của user
-        đang đăng nhập.
+      description: Device hiện tại gọi API này để lấy ciphertext chưa delivered. Ciphertext
+        chỉ trả về cho device_uuid thuộc user đang đăng nhập.
       parameters:
       - description: Device UUID
         in: query
@@ -2549,8 +2549,8 @@ paths:
       - Messages
   /messages/ciphertexts/{id}/delivered:
     patch:
-      description: Đánh dấu một ciphertext là delivered. Chỉ owner của target device
-        mới được mark.
+      description: Đánh dấu ciphertext là delivered. Chỉ owner của target device mới
+        được mark delivered.
       parameters:
       - description: Ciphertext ID
         in: path
@@ -2621,7 +2621,8 @@ paths:
       consumes:
       - application/json
       description: Tạo message type encrypted và lưu ciphertext riêng theo từng target
-        device. Backend không nhận hoặc lưu plaintext.
+        device. Backend không nhận plaintext, không lưu plaintext vào messages.content,
+        và WebSocket chỉ gửi metadata.
       parameters:
       - description: Encrypted message payload
         in: body

@@ -2009,7 +2009,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy danh sách ciphertext chưa delivered theo device_uuid của user đang đăng nhập.",
+                "description": "Device hiện tại gọi API này để lấy ciphertext chưa delivered. Ciphertext chỉ trả về cho device_uuid thuộc user đang đăng nhập.",
                 "produces": [
                     "application/json"
                 ],
@@ -2055,7 +2055,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Đánh dấu một ciphertext là delivered. Chỉ owner của target device mới được mark.",
+                "description": "Đánh dấu ciphertext là delivered. Chỉ owner của target device mới được mark delivered.",
                 "produces": [
                     "application/json"
                 ],
@@ -2161,7 +2161,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tạo message type encrypted và lưu ciphertext riêng theo từng target device. Backend không nhận hoặc lưu plaintext.",
+                "description": "Tạo message type encrypted và lưu ciphertext riêng theo từng target device. Backend không nhận plaintext, không lưu plaintext vào messages.content, và WebSocket chỉ gửi metadata.",
                 "consumes": [
                     "application/json"
                 ],

@@ -14,7 +14,7 @@ type Handlers struct {
 	Message      *handler.MessageHandler
 	UserDevice   *handler.UserDeviceHandler
 	E2EEKey      *handler.E2EEKeyHandler
-	RealtimeHub *realtime.Hub
+	RealtimeHub  *realtime.Hub
 }
 
 func RegisterRoutes(
@@ -28,14 +28,14 @@ func RegisterRoutes(
 		_, _ = w.Write([]byte(`{"message":"pong"}`))
 	})
 	mux.HandleFunc("GET /ws", func(w http.ResponseWriter, r *http.Request) {
-	userID, err := realtime.ParseUserIDFromQuery(r)
-	if err != nil || userID <= 0 {
-		http.Error(w, "missing or invalid user_id", http.StatusBadRequest)
-		return
-	}
+		userID, err := realtime.ParseUserIDFromQuery(r)
+		if err != nil || userID <= 0 {
+			http.Error(w, "missing or invalid user_id", http.StatusBadRequest)
+			return
+		}
 
-	realtime.ServeWS(handlers.RealtimeHub, w, r, userID)
-})
+		realtime.ServeWS(handlers.RealtimeHub, w, r, userID)
+	})
 
 	// public
 	mux.HandleFunc("POST /auth/register", handlers.Auth.Register)
