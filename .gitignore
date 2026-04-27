@@ -4,7 +4,38 @@
 .vscode/
 
 # ======================
-# Flutter
+# OS
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# Logs
+# ======================
+*.log
+
+# ======================
+# Build / Binary files
+# ======================
+*.exe
+*.out
+*.dll
+
+# ======================
+# Backend - Go
+# ======================
+chattingapp_be/bin/
+chattingapp_be/build/
+chattingapp_be/tmp/
+chattingapp_be/.cache/
+
+# Backend env files
+chattingapp_be/.env
+chattingapp_be/.env.*
+!chattingapp_be/.env.example
+
+# ======================
+# Frontend - Flutter
 # ======================
 chattingapp_fe/build/
 chattingapp_fe/.dart_tool/
@@ -13,6 +44,10 @@ chattingapp_fe/.flutter-plugins
 chattingapp_fe/.flutter-plugins-dependencies
 chattingapp_fe/.pub/
 chattingapp_fe/coverage/
+
+# Flutter / Dart / Pub cache
+chattingapp_fe/**/doc/api/
+chattingapp_fe/.pub-cache/
 
 # Android
 chattingapp_fe/android/.gradle/
@@ -26,25 +61,24 @@ chattingapp_fe/ios/Flutter/.last_build_id
 chattingapp_fe/ios/Pods/
 chattingapp_fe/ios/.symlinks/
 
-# ======================
-# Golang (BE)
-# ======================
-chattingapp_be/.env
-chattingapp_be/bin/
-chattingapp_be/build/
-chattingapp_be/tmp/
-chattingapp_be/.cache/
-
-# file build exe
-*.exe
-*.out
-*.dll
-
-# logs
-*.log
+# Symbolication / Obfuscation
+chattingapp_fe/app.*.symbols
+chattingapp_fe/app.*.map.json
 
 # ======================
-# OS
+# IDE / Misc
 # ======================
-.DS_Store
-Thumbs.db
+*.class
+*.pyc
+*.swp
+*.iml
+*.ipr
+*.iws
+.idea/
+.atom/
+.build/
+.buildlog/
+.history/
+.svn/
+.swiftpm/
+migrate_working_dir/
