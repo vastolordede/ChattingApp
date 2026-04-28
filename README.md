@@ -1,5 +1,7 @@
 # ChattingApp
 
+![Backend CI](https://github.com/vastolordede/ChattingApp/actions/workflows/be-ci.yml/badge.svg?branch=develop)
+
 ChattingApp là hệ thống chat realtime gồm Backend API và Frontend Flutter. Dự án hỗ trợ các chức năng chính như xác thực người dùng, quản lý bạn bè, cuộc trò chuyện trực tiếp, tin nhắn, thiết bị đăng nhập, WebSocket realtime và backend support cho E2EE.
 
 ---
