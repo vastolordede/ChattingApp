@@ -45,6 +45,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Check sensitive files
+        working-directory: .
+        run: |
+          echo "Checking for sensitive files..."
+
+          blocked_files=$(git ls-files | grep -E '(^|/)(\.env|\.env\..*|.*\.pem|.*\.key|.*\.p12|.*\.pfx|.*\.secret|.*\.secrets)$' | grep -vE '(^|/)\.env\.example$' || true)
+
+          if [ -n "$blocked_files" ]; then
+            echo "Sensitive files detected:"
+            echo "$blocked_files"
+            echo "Remove these files from git and keep only .env.example."
+            exit 1
+          fi
+
+          echo "No sensitive files detected."
       - name: Setup Go from go.mod
         uses: actions/setup-go@v5
         with:
