@@ -11,8 +11,8 @@ import (
 )
 
 type UserDeviceService struct {
-	repo *repository.UserDeviceRepository
-	tokenRepo  *repository.UserRefreshTokenRepository
+	repo      *repository.UserDeviceRepository
+	tokenRepo *repository.UserRefreshTokenRepository
 }
 
 func NewUserDeviceService(

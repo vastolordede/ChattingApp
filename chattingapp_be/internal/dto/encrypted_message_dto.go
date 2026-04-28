@@ -10,11 +10,11 @@ type EncryptedCiphertextItemRequest struct {
 }
 
 type SendEncryptedMessageRequest struct {
-	ConversationID     int64                            `json:"conversation_id" validate:"required"`
-	SenderDeviceUUID   string                           `json:"sender_device_uuid" validate:"required"`
-	ReplyToMessageID   *int64                           `json:"reply_to_message_id,omitempty"`
-	ClientMessageID    *string                          `json:"client_message_id,omitempty"`
-	Ciphertexts        []EncryptedCiphertextItemRequest `json:"ciphertexts" validate:"required"`
+	ConversationID   int64                            `json:"conversation_id" validate:"required"`
+	SenderDeviceUUID string                           `json:"sender_device_uuid" validate:"required"`
+	ReplyToMessageID *int64                           `json:"reply_to_message_id,omitempty"`
+	ClientMessageID  *string                          `json:"client_message_id,omitempty"`
+	Ciphertexts      []EncryptedCiphertextItemRequest `json:"ciphertexts" validate:"required"`
 }
 
 type EncryptedCiphertextResponse struct {
@@ -33,6 +33,6 @@ type EncryptedCiphertextResponse struct {
 }
 
 type SendEncryptedMessageResponse struct {
-	Message     MessageResponse                `json:"message"`
+	Message     MessageResponse               `json:"message"`
 	Ciphertexts []EncryptedCiphertextResponse `json:"ciphertexts"`
 }

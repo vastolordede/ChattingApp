@@ -9,16 +9,16 @@ import (
 )
 
 type Config struct {
-	AppEnv          string
-	AppPort         string
-	DBHost          string
-	DBPort          string
-	DBName          string
-	DBUser          string
-	DBPassword      string
-	DBSSLMode       string
-	JWTSecret       string
-	JWTExpiresHours int
+	AppEnv              string
+	AppPort             string
+	DBHost              string
+	DBPort              string
+	DBName              string
+	DBUser              string
+	DBPassword          string
+	DBSSLMode           string
+	JWTSecret           string
+	JWTExpiresHours     int
 	RefreshExpiresHours int
 }
 

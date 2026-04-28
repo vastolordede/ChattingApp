@@ -166,4 +166,3 @@ func (h *E2EEKeyHandler) GetUserKeyBundle(w http.ResponseWriter, r *http.Request
 		Data:    resp,
 	})
 }
-

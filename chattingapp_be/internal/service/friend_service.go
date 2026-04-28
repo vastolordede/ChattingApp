@@ -12,10 +12,10 @@ import (
 )
 
 type FriendService struct {
-	db                *sql.DB
-	friendReqRepo     *repository.FriendRequestRepository
-	friendshipRepo    *repository.FriendshipRepository
-	userRepo          *repository.UserRepository
+	db             *sql.DB
+	friendReqRepo  *repository.FriendRequestRepository
+	friendshipRepo *repository.FriendshipRepository
+	userRepo       *repository.UserRepository
 }
 
 func NewFriendService(

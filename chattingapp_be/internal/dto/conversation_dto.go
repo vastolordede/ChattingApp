@@ -16,30 +16,30 @@ type ConversationMemberResponse struct {
 }
 
 type ConversationListItemResponse struct {
-	ID               int64                  `json:"id"`
-	ConversationType string                 `json:"conversation_type"`
-	Title            *string                `json:"title,omitempty"`
-	AvatarURL        *string                `json:"avatar_url,omitempty"`
-	Status           string                 `json:"status"`
-	LastMessageID    *int64                 `json:"last_message_id,omitempty"`
-	LastMessageAt    *string                `json:"last_message_at,omitempty"`
+	ID               int64                   `json:"id"`
+	ConversationType string                  `json:"conversation_type"`
+	Title            *string                 `json:"title,omitempty"`
+	AvatarURL        *string                 `json:"avatar_url,omitempty"`
+	Status           string                  `json:"status"`
+	LastMessageID    *int64                  `json:"last_message_id,omitempty"`
+	LastMessageAt    *string                 `json:"last_message_at,omitempty"`
 	LastMessage      *MessagePreviewResponse `json:"last_message,omitempty"`
-	CreatedAt        string                 `json:"created_at"`
-	UpdatedAt        string                 `json:"updated_at"`
+	CreatedAt        string                  `json:"created_at"`
+	UpdatedAt        string                  `json:"updated_at"`
 }
 
 type ConversationDetailResponse struct {
-	ID               int64                        `json:"id"`
-	ConversationType string                       `json:"conversation_type"`
-	Title            *string                      `json:"title,omitempty"`
-	AvatarURL        *string                      `json:"avatar_url,omitempty"`
-	Status           string                       `json:"status"`
-	CreatedByUserID  *int64                       `json:"created_by_user_id,omitempty"`
-	LastMessageID    *int64                       `json:"last_message_id,omitempty"`
-	LastMessageAt    *string                      `json:"last_message_at,omitempty"`
-	CreatedAt        string                       `json:"created_at"`
-	UpdatedAt        string                       `json:"updated_at"`
-	Members          []ConversationMemberSummary  `json:"members"`
+	ID               int64                       `json:"id"`
+	ConversationType string                      `json:"conversation_type"`
+	Title            *string                     `json:"title,omitempty"`
+	AvatarURL        *string                     `json:"avatar_url,omitempty"`
+	Status           string                      `json:"status"`
+	CreatedByUserID  *int64                      `json:"created_by_user_id,omitempty"`
+	LastMessageID    *int64                      `json:"last_message_id,omitempty"`
+	LastMessageAt    *string                     `json:"last_message_at,omitempty"`
+	CreatedAt        string                      `json:"created_at"`
+	UpdatedAt        string                      `json:"updated_at"`
+	Members          []ConversationMemberSummary `json:"members"`
 }
 
 type ConversationMemberSummary struct {

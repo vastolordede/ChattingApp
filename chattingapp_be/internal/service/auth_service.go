@@ -6,24 +6,24 @@ import (
 	"chattingapp_be/internal/repository"
 	"chattingapp_be/internal/util"
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
-	"fmt"
-	"crypto/rand"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	userRepo         *repository.UserRepository
-	userDeviceRepo   *repository.UserDeviceRepository
-	refreshTokenRepo *repository.UserRefreshTokenRepository
+	userRepo               *repository.UserRepository
+	userDeviceRepo         *repository.UserDeviceRepository
+	refreshTokenRepo       *repository.UserRefreshTokenRepository
 	passwordResetTokenRepo *repository.PasswordResetTokenRepository
-	jwtManager       *util.JWTManager
-	refreshDuration  time.Duration
+	jwtManager             *util.JWTManager
+	refreshDuration        time.Duration
 }
 
 func NewAuthService(
@@ -35,12 +35,12 @@ func NewAuthService(
 	refreshExpiresHours int,
 ) *AuthService {
 	return &AuthService{
-		userRepo:         userRepo,
-		userDeviceRepo:   userDeviceRepo,
-		refreshTokenRepo: refreshTokenRepo,
+		userRepo:               userRepo,
+		userDeviceRepo:         userDeviceRepo,
+		refreshTokenRepo:       refreshTokenRepo,
 		passwordResetTokenRepo: passwordResetTokenRepo,
-		jwtManager:       jwtManager,
-		refreshDuration:  time.Duration(refreshExpiresHours) * time.Hour,
+		jwtManager:             jwtManager,
+		refreshDuration:        time.Duration(refreshExpiresHours) * time.Hour,
 	}
 }
 
@@ -126,8 +126,6 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (*d
 		return nil, err
 	}
 
-
-
 	refreshTokenModel := &models.UserRefreshToken{
 		UserID:       user.ID,
 		UserDeviceID: sql.NullInt64{Valid: false},
@@ -138,8 +136,8 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (*d
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
-fmt.Println("LOGIN: about to create refresh token for user:", user.ID)
-fmt.Println("LOGIN: token hash:", refreshTokenModel.TokenHash)
+	fmt.Println("LOGIN: about to create refresh token for user:", user.ID)
+	fmt.Println("LOGIN: token hash:", refreshTokenModel.TokenHash)
 	_, err = s.refreshTokenRepo.Create(ctx, refreshTokenModel)
 	if err != nil {
 		return nil, err

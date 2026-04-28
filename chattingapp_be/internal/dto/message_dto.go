@@ -55,8 +55,8 @@ type MessageResponse struct {
 	EditedAt               *string                     `json:"edited_at,omitempty"`
 	IsDeleted              bool                        `json:"is_deleted"`
 	DeletedAt              *string                     `json:"deleted_at,omitempty"`
-	IsRecalled bool    `json:"is_recalled"`
-	RecalledAt *string `json:"recalled_at,omitempty"`
+	IsRecalled             bool                        `json:"is_recalled"`
+	RecalledAt             *string                     `json:"recalled_at,omitempty"`
 	ClientMessageID        *string                     `json:"client_message_id,omitempty"`
 	SentAt                 string                      `json:"sent_at"`
 	CreatedAt              string                      `json:"created_at"`
