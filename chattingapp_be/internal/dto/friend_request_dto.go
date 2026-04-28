@@ -10,15 +10,15 @@ type RespondFriendRequestRequest struct {
 }
 
 type FriendRequestResponse struct {
-	ID           int64              `json:"id"`
-	Status       string             `json:"status"`
-	Message      *string            `json:"message,omitempty"`
-	CreatedAt    string             `json:"created_at"`
-	UpdatedAt    string             `json:"updated_at"`
-	RespondedAt  *string            `json:"responded_at,omitempty"`
-	ExpiredAt    *string            `json:"expired_at,omitempty"`
-	Sender       FriendUserSummary  `json:"sender"`
-	Receiver     FriendUserSummary  `json:"receiver"`
+	ID          int64             `json:"id"`
+	Status      string            `json:"status"`
+	Message     *string           `json:"message,omitempty"`
+	CreatedAt   string            `json:"created_at"`
+	UpdatedAt   string            `json:"updated_at"`
+	RespondedAt *string           `json:"responded_at,omitempty"`
+	ExpiredAt   *string           `json:"expired_at,omitempty"`
+	Sender      FriendUserSummary `json:"sender"`
+	Receiver    FriendUserSummary `json:"receiver"`
 }
 
 type FriendUserSummary struct {

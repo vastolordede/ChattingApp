@@ -16,18 +16,18 @@ type UpdatePushTokenRequest struct {
 
 type UserDeviceResponse struct {
 	ID           int64   `json:"id"`
-	UserID        int64   `json:"user_id"`
-	DeviceUUID    string  `json:"device_uuid"`
-	DeviceName    string  `json:"device_name"`
-	DeviceType    string  `json:"device_type"`
-	Platform      string  `json:"platform"`
-	AppVersion    *string `json:"app_version,omitempty"`
-	OSVersion     *string `json:"os_version,omitempty"`
-	PushToken     *string `json:"push_token,omitempty"`
-	IsTrusted     bool    `json:"is_trusted"`
-	IsActive      bool    `json:"is_active"`
-	LastSeenAt    *string `json:"last_seen_at,omitempty"`
-	RegisteredAt  string  `json:"registered_at"`
-	CreatedAt     string  `json:"created_at"`
-	UpdatedAt     string  `json:"updated_at"`
+	UserID       int64   `json:"user_id"`
+	DeviceUUID   string  `json:"device_uuid"`
+	DeviceName   string  `json:"device_name"`
+	DeviceType   string  `json:"device_type"`
+	Platform     string  `json:"platform"`
+	AppVersion   *string `json:"app_version,omitempty"`
+	OSVersion    *string `json:"os_version,omitempty"`
+	PushToken    *string `json:"push_token,omitempty"`
+	IsTrusted    bool    `json:"is_trusted"`
+	IsActive     bool    `json:"is_active"`
+	LastSeenAt   *string `json:"last_seen_at,omitempty"`
+	RegisteredAt string  `json:"registered_at"`
+	CreatedAt    string  `json:"created_at"`
+	UpdatedAt    string  `json:"updated_at"`
 }

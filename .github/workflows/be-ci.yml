@@ -1,0 +1,72 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - "chattingapp_be/**"
+      - ".github/workflows/be-ci.yml"
+
+  push:
+    branches:
+      - develop
+      - "ci/**"
+      - "feature/**"
+      - "fix/**"
+      - "docs/**"
+    paths:
+      - "chattingapp_be/**"
+      - ".github/workflows/be-ci.yml"
+
+jobs:
+  backend-ci:
+    name: Test and build backend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: chattingapp_be
+
+    env:
+      APP_ENV: test
+      APP_PORT: 8080
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: chatting_app
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: disable
+      JWT_SECRET: test_secret_for_ci_only
+      JWT_EXPIRES_HOURS: 72
+      REFRESH_EXPIRES_HOURS: 168
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go from go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: chattingapp_be/go.mod
+
+      - name: Show Go version
+        run: go version
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Check Go formatting
+        run: |
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "These files are not formatted:"
+            echo "$files"
+            exit 1
+          fi
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Build backend
+        run: go build -o server ./cmd/api

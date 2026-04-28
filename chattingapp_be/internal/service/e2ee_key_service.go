@@ -11,10 +11,10 @@ import (
 )
 
 type E2EEKeyService struct {
-	userDeviceRepo     *repository.UserDeviceRepository
-	identityKeyRepo    *repository.DeviceIdentityKeyRepository
-	signedPreKeyRepo   *repository.DeviceSignedPreKeyRepository
-	oneTimePreKeyRepo  *repository.DeviceOneTimePreKeyRepository
+	userDeviceRepo    *repository.UserDeviceRepository
+	identityKeyRepo   *repository.DeviceIdentityKeyRepository
+	signedPreKeyRepo  *repository.DeviceSignedPreKeyRepository
+	oneTimePreKeyRepo *repository.DeviceOneTimePreKeyRepository
 }
 
 func NewE2EEKeyService(

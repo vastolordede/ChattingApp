@@ -30,7 +30,7 @@ func (r *UserRefreshTokenRepository) Create(ctx context.Context, token *models.U
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id
 	`
-fmt.Println("REPO: Create refresh token called")
+	fmt.Println("REPO: Create refresh token called")
 	fmt.Println("REPO: user_id =", token.UserID)
 	fmt.Println("REPO: user_device_id =", token.UserDeviceID)
 	fmt.Println("REPO: token_hash =", token.TokenHash)

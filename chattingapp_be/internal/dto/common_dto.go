@@ -10,7 +10,7 @@ type APIResponse struct {
 type PaginationMeta struct {
 	Page      int `json:"page"`
 	Limit     int `json:"limit"`
-	Total     int `json:"total"`	
+	Total     int `json:"total"`
 	TotalPage int `json:"total_page"`
 }
 

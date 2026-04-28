@@ -3,13 +3,13 @@ package service
 import (
 	"chattingapp_be/internal/dto"
 	"chattingapp_be/internal/models"
+	"chattingapp_be/internal/realtime"
 	"chattingapp_be/internal/repository"
 	"context"
 	"database/sql"
 	"errors"
 	"strings"
 	"time"
-	"chattingapp_be/internal/realtime"
 )
 
 type ConversationService struct {
@@ -18,7 +18,7 @@ type ConversationService struct {
 	conversationMemberRepo *repository.ConversationMemberRepository
 	userRepo               *repository.UserRepository
 	messageRepo            *repository.MessageRepository
-	realtimeHub *realtime.Hub
+	realtimeHub            *realtime.Hub
 }
 
 func NewConversationService(
@@ -35,7 +35,7 @@ func NewConversationService(
 		conversationMemberRepo: conversationMemberRepo,
 		userRepo:               userRepo,
 		messageRepo:            messageRepo,
-		realtimeHub: realtimeHub,
+		realtimeHub:            realtimeHub,
 	}
 }
 
@@ -256,17 +256,17 @@ func (s *ConversationService) MarkConversationRead(
 	}
 
 	if err := s.conversationMemberRepo.UpdateLastRead(ctx, conversationID, userID, req.LastReadMessageID); err != nil {
-	return err
-}
+		return err
+	}
 
-s.broadcastConversationEvent(ctx, conversationID, realtime.Event{
-	Type:           "message_read",
-	ConversationID: conversationID,
-	UserID:         userID,
-	MessageID:      req.LastReadMessageID,
-})
+	s.broadcastConversationEvent(ctx, conversationID, realtime.Event{
+		Type:           "message_read",
+		ConversationID: conversationID,
+		UserID:         userID,
+		MessageID:      req.LastReadMessageID,
+	})
 
-return nil
+	return nil
 }
 
 func (s *ConversationService) UpdateMyNickname(
