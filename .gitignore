@@ -1,4 +1,31 @@
 # ======================
+# Environment / Secrets
+# ======================
+.env
+.env.*
+!.env.example
+
+chattingapp_be/.env
+chattingapp_be/.env.*
+!chattingapp_be/.env.example
+
+chattingapp_fe/.env
+chattingapp_fe/.env.*
+!chattingapp_fe/.env.example
+
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.secret
+*.secrets
+secrets/
+id_rsa
+id_rsa.pub
+
+# ======================
 # VSCode
 # ======================
 .vscode/
