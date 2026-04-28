@@ -638,3 +638,48 @@ git status
 - Nên dùng `.env.example` để mô tả các biến môi trường cần thiết.
 - E2EE hiện ở mức backend hỗ trợ lưu key/ciphertext và bảo đảm không lưu plaintext.
 - Việc mã hóa và giải mã thật sự nằm ở phía client.
+
+---
+
+## 16. Quy ước phát triển cho backend
+
+Backend đi theo luồng xử lý chính:
+
+Client
+  ↓
+Routes
+  ↓
+Middleware
+  ↓
+Handler
+  ↓
+Service
+  ↓
+Repository
+  ↓
+Database
+
+### Vai trò từng layer
+
+- `routes/`: đăng ký endpoint và gắn middleware.
+- `middleware/`: xác thực JWT, lấy `user_id` và đưa vào request context.
+- `handler/`: nhận request, decode JSON/query/path params, gọi service và trả response.
+- `service/`: xử lý nghiệp vụ chính, kiểm tra quyền, validate logic, phối hợp nhiều repository.
+- `repository/`: thao tác database, không chứa logic nghiệp vụ.
+- `dto/`: định nghĩa request/response trả ra API.
+- `models/`: ánh xạ dữ liệu gần với database.
+- `util/`: hàm tiện ích như JWT.
+
+### Quy tắc khi thêm feature mới
+
+1. Tạo DTO request/response nếu API có input/output mới.
+2. Thêm function repository nếu cần truy vấn database mới.
+3. Viết logic nghiệp vụ trong service.
+4. Handler chỉ gọi service, không viết SQL trong handler.
+5. Đăng ký route trong `internal/routes/routes.go`.
+6. Thêm Swagger annotation hoặc doc stub.
+7. Chạy:
+   ```bash
+   gofmt -w .
+   go test ./...
+   swag init -g cmd/api/main.go -d .
