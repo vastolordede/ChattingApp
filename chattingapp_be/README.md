@@ -683,3 +683,679 @@ Database
    gofmt -w .
    go test ./...
    swag init -g cmd/api/main.go -d .
+---
+
+## 17. CI/CD và Deploy Backend
+
+Backend hiện đã được cấu hình CI/CD cơ bản với:
+
+- **CI:** GitHub Actions
+- **CD:** Render
+- **Database production:** Neon PostgreSQL
+- **Deploy runtime:** Docker
+
+Luồng CI/CD hiện tại:
+
+```text
+Push code lên nhánh riêng
+  ↓
+Tạo Pull Request vào develop
+  ↓
+GitHub Actions chạy CI
+  ↓
+CI thành công
+  ↓
+Review code
+  ↓
+Merge vào develop
+  ↓
+Render tự động deploy backend
+  ↓
+Backend production được cập nhật
+```
+
+---
+
+## 18. Branching workflow
+
+Nhánh chính dùng để tích hợp code là:
+
+```text
+develop
+```
+
+Không push trực tiếp vào `develop`. Mọi thay đổi nên được làm trên nhánh riêng, sau đó tạo Pull Request vào `develop`.
+
+### Quy ước đặt tên nhánh
+
+```text
+feature/<ten-chuc-nang>
+fix/<ten-loi>
+docs/<noi-dung-tai-lieu>
+ci/<noi-dung-ci>
+deploy/<noi-dung-deploy>
+security/<noi-dung-bao-mat>
+```
+
+Ví dụ:
+
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b feature/message-search
+```
+
+Sau khi code xong:
+
+```bash
+git add .
+git commit -m "feat: add message search"
+git push -u origin feature/message-search
+```
+
+Sau đó tạo Pull Request:
+
+```text
+feature/message-search → develop
+```
+
+---
+
+## 19. Pull Request rule
+
+Nhánh `develop` được cấu hình rule để hạn chế merge trực tiếp.
+
+Quy trình chuẩn khi merge code:
+
+```text
+Tạo nhánh mới
+  ↓
+Commit code
+  ↓
+Push nhánh lên GitHub
+  ↓
+Tạo Pull Request vào develop
+  ↓
+Đợi CI chạy thành công
+  ↓
+Review code
+  ↓
+Merge vào develop
+```
+
+Hiện tại Pull Request nên đảm bảo:
+
+- Không có file nhạy cảm bị commit.
+- Code Go đã được format bằng `gofmt`.
+- Test chạy thành công.
+- Backend build thành công.
+- Người review kiểm tra logic trước khi merge.
+
+---
+
+## 20. GitHub Actions CI
+
+Backend CI được chạy bằng GitHub Actions.
+
+File workflow:
+
+```text
+.github/workflows/be-ci.yml
+```
+
+CI hiện chạy khi có thay đổi liên quan đến backend hoặc workflow CI.
+
+Các bước kiểm tra chính:
+
+```text
+1. Checkout source code
+2. Check sensitive files
+3. Setup Go theo version trong go.mod
+4. Download dependencies
+5. Check Go formatting bằng gofmt
+6. Run tests bằng go test ./...
+7. Build backend bằng go build
+```
+
+### Lệnh kiểm tra tương đương ở local
+
+Trước khi push code, có thể tự chạy:
+
+```bash
+cd chattingapp_be
+gofmt -w .
+go test ./...
+go build -o server ./cmd/api
+```
+
+Nếu các lệnh trên chạy ổn thì khả năng cao CI trên GitHub cũng sẽ pass.
+
+---
+
+## 21. Bảo vệ file nhạy cảm
+
+Dự án có 3 lớp bảo vệ file nhạy cảm:
+
+```text
+1. .gitignore
+2. GitHub Secret Protection / Push Protection
+3. GitHub Actions CI check sensitive files
+```
+
+### Các file không được commit
+
+Không commit các file chứa mật khẩu, token, private key, JWT secret hoặc database URL thật.
+
+Các pattern bị chặn gồm:
+
+```text
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.secret
+*.secrets
+secrets/
+id_rsa
+id_rsa.pub
+```
+
+Chỉ được commit file mẫu:
+
+```text
+.env.example
+```
+
+File `.env.example` chỉ dùng để mô tả các biến môi trường cần thiết, không chứa mật khẩu thật.
+
+### Local env
+
+Môi trường local dùng file:
+
+```text
+chattingapp_be/.env
+```
+
+File này không được push lên GitHub.
+
+Ví dụ local `.env`:
+
+```env
+APP_ENV=development
+APP_PORT=8080
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=chatting_app
+DB_USER=postgres
+DB_PASSWORD=your_local_password
+DB_SSLMODE=disable
+
+JWT_SECRET=change_me_to_a_long_random_secret_key
+JWT_EXPIRES_HOURS=72
+REFRESH_EXPIRES_HOURS=168
+```
+
+---
+
+## 22. Docker
+
+Backend có Dockerfile tại:
+
+```text
+chattingapp_be/Dockerfile
+```
+
+Render dùng Dockerfile này để build và chạy backend production.
+
+### Build Docker image ở local
+
+Nếu máy có Docker, có thể test bằng:
+
+```bash
+cd chattingapp_be
+docker build -t chattingapp-be .
+```
+
+Chạy container:
+
+```bash
+docker run --env-file .env -p 8080:8080 chattingapp-be
+```
+
+Sau đó test:
+
+```text
+http://localhost:8080/ping
+```
+
+Nếu chưa dùng Docker local thì vẫn có thể deploy bằng Render vì Render sẽ tự build Docker image trên server của Render.
+
+---
+
+## 23. Continuous Deployment bằng Render
+
+Backend được deploy trên Render.
+
+Production URL:
+
+```text
+https://chattingapp-wxgj.onrender.com
+```
+
+Swagger UI production:
+
+```text
+https://chattingapp-wxgj.onrender.com/swagger/index.html
+```
+
+Health check:
+
+```text
+https://chattingapp-wxgj.onrender.com/ping
+```
+
+### Cấu hình Render
+
+Cấu hình service trên Render:
+
+```text
+Runtime: Docker
+Branch: develop
+Root Directory: chattingapp_be
+Region: Singapore
+Instance Type: Free
+```
+
+Khi có code mới được merge vào `develop`, Render sẽ tự động deploy lại backend.
+
+### Lưu ý với Render Free
+
+Render Free có thể sleep sau một thời gian không có request.
+
+Khi server sleep, request đầu tiên có thể chậm hơn bình thường vì Render cần khởi động lại service.
+
+---
+
+## 24. Production environment variables
+
+Production không dùng file `.env` trong GitHub.
+
+Các biến môi trường production được cấu hình trực tiếp trên Render.
+
+Danh sách biến cần có:
+
+```env
+APP_ENV=production
+APP_PORT=8080
+
+DB_HOST=<neon-host>
+DB_PORT=5432
+DB_NAME=neondb
+DB_USER=<neon-user>
+DB_PASSWORD=<neon-password>
+DB_SSLMODE=require
+
+JWT_SECRET=<production-secret>
+JWT_EXPIRES_HOURS=72
+REFRESH_EXPIRES_HOURS=168
+```
+
+Trong đó:
+
+- `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` lấy từ Neon PostgreSQL.
+- `DB_SSLMODE=require` là bắt buộc khi kết nối Neon.
+- `JWT_SECRET` phải là chuỗi dài, random, không dùng lại secret test.
+
+Có thể tạo JWT secret bằng PowerShell:
+
+```powershell
+[guid]::NewGuid().ToString() + [guid]::NewGuid().ToString()
+```
+
+---
+
+## 25. Database production trên Neon
+
+Production database đang dùng Neon PostgreSQL.
+
+Local development vẫn dùng PostgreSQL local.
+
+### Phân biệt database local và production
+
+Local:
+
+```text
+DB_HOST=localhost
+DB_NAME=chatting_app
+DB_SSLMODE=disable
+```
+
+Production:
+
+```text
+DB_HOST=<neon-host>
+DB_NAME=neondb
+DB_SSLMODE=require
+```
+
+Không dùng database local cho production.
+
+Không dùng Neon production cho việc test lung tung nếu không cần thiết.
+
+### Import database lên Neon
+
+Có thể export database local bằng DBeaver hoặc `pg_dump`, sau đó import vào Neon.
+
+Sau khi import xong, cần kiểm tra trên Neon:
+
+- Có đủ bảng.
+- Có dữ liệu cần thiết.
+- Các foreign key không lỗi.
+- Các sequence/id vẫn hoạt động đúng.
+
+Test nhanh bằng cách gọi API production:
+
+```text
+POST /auth/register
+POST /auth/login
+GET /auth/me
+```
+
+Nếu user mới được tạo trong Neon thì backend production đã kết nối database đúng.
+
+---
+
+## 26. Kiểm tra production sau deploy
+
+Sau mỗi lần deploy, nên kiểm tra nhanh các endpoint sau:
+
+### Ping server
+
+```text
+GET /ping
+```
+
+URL:
+
+```text
+https://chattingapp-wxgj.onrender.com/ping
+```
+
+Kết quả mong muốn:
+
+```json
+{
+  "message": "pong"
+}
+```
+
+### Swagger
+
+```text
+https://chattingapp-wxgj.onrender.com/swagger/index.html
+```
+
+### Auth flow
+
+Test các API:
+
+```text
+POST /auth/register
+POST /auth/login
+GET /auth/me
+```
+
+Sau khi login, copy `access_token` và dùng trong Swagger:
+
+```text
+Bearer <access_token>
+```
+
+---
+
+## 27. Quy trình làm việc sau khi đã có CI/CD
+
+Khi phát triển feature mới:
+
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b feature/<ten-feature>
+```
+
+Sau khi sửa code:
+
+```bash
+cd chattingapp_be
+gofmt -w .
+go test ./...
+go build -o server ./cmd/api
+```
+
+Commit:
+
+```bash
+git add .
+git commit -m "feat: mo ta ngan gon thay doi"
+git push -u origin feature/<ten-feature>
+```
+
+Tạo Pull Request vào:
+
+```text
+develop
+```
+
+Đợi CI pass, review code rồi merge.
+
+Sau khi merge, Render sẽ tự deploy backend.
+
+---
+
+## 28. Khi CI fail thì xử lý thế nào
+
+Nếu CI fail, vào tab **Actions** hoặc tab **Checks** trong Pull Request để xem log.
+
+Một số lỗi thường gặp:
+
+### Lỗi gofmt
+
+Nếu CI báo file chưa format:
+
+```bash
+cd chattingapp_be
+gofmt -w .
+```
+
+Sau đó commit lại:
+
+```bash
+git add .
+git commit -m "style: format go code"
+git push
+```
+
+### Lỗi test
+
+Nếu `go test ./...` fail, đọc log để biết package hoặc function nào lỗi.
+
+Chạy lại ở local:
+
+```bash
+cd chattingapp_be
+go test ./...
+```
+
+### Lỗi build
+
+Nếu `go build` fail, thường là do:
+
+- Import sai package.
+- Function đổi tên nhưng chỗ khác chưa sửa.
+- Thiếu dependency.
+- Sai đường dẫn package.
+- Code compile không qua.
+
+Chạy lại ở local:
+
+```bash
+cd chattingapp_be
+go build -o server ./cmd/api
+```
+
+### Lỗi sensitive files
+
+Nếu CI báo có file nhạy cảm bị track, cần remove khỏi Git index:
+
+```bash
+git rm --cached <ten-file>
+```
+
+Ví dụ:
+
+```bash
+git rm --cached chattingapp_be/.env
+```
+
+Sau đó commit lại:
+
+```bash
+git add .
+git commit -m "chore: remove sensitive file from git tracking"
+git push
+```
+
+---
+
+## 29. Khi Render deploy fail thì xử lý thế nào
+
+Nếu Render deploy fail, vào Render Dashboard và mở tab **Logs**.
+
+Các lỗi thường gặp:
+
+### Sai env production
+
+Kiểm tra lại Render Environment Variables:
+
+```text
+APP_ENV
+APP_PORT
+DB_HOST
+DB_PORT
+DB_NAME
+DB_USER
+DB_PASSWORD
+DB_SSLMODE
+JWT_SECRET
+JWT_EXPIRES_HOURS
+REFRESH_EXPIRES_HOURS
+```
+
+### Sai database host
+
+`DB_HOST` chỉ nên là host, không bao gồm:
+
+```text
+postgresql://
+```
+
+Không để nguyên cả connection string vào `DB_HOST`.
+
+### Sai SSL mode
+
+Với Neon, cần:
+
+```text
+DB_SSLMODE=require
+```
+
+### Sai port
+
+Render cần app listen theo port được cấu hình.
+
+Hiện backend dùng:
+
+```text
+APP_PORT=8080
+```
+
+### Docker build fail
+
+Kiểm tra lại:
+
+```text
+Root Directory: chattingapp_be
+Dockerfile: Dockerfile
+```
+
+Dockerfile phải nằm tại:
+
+```text
+chattingapp_be/Dockerfile
+```
+
+---
+
+## 30. Ghi chú bảo mật
+
+- Không commit `.env` thật.
+- Không commit database password.
+- Không commit JWT secret.
+- Không commit private key.
+- Không commit file certificate thật.
+- Không ghi password trực tiếp vào README.
+- Không gửi production secret qua chat nhóm.
+- Nếu lỡ leak secret, cần reset ngay trên Neon hoặc Render.
+- Nếu lỡ commit secret lên GitHub, chỉ xóa file ở commit mới là chưa đủ. Cần rotate secret vì secret cũ đã bị lộ.
+
+---
+
+## 31. Trạng thái hiện tại
+
+Backend hiện đã có:
+
+```text
+- API backend Go
+- PostgreSQL schema
+- Swagger UI
+- JWT authentication
+- Refresh token
+- Friend system
+- Direct conversation
+- Message system
+- Reaction
+- Forward message
+- Recall message
+- Device management
+- WebSocket realtime
+- E2EE key management
+- Encrypted message storage
+- GitHub Actions CI
+- Sensitive file protection
+- Dockerfile
+- Render deployment
+- Neon PostgreSQL production database
+```
+
+Backend production hiện chạy tại:
+
+```text
+https://chattingapp-wxgj.onrender.com
+```
+
+Swagger production:
+
+```text
+https://chattingapp-wxgj.onrender.com/swagger/index.html
+```
+
+Health check:
+
+```text
+https://chattingapp-wxgj.onrender.com/ping
+```
